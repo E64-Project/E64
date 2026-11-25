@@ -59,3 +59,55 @@ No future updates, technical support or maintenance are promised.
 - [Build instructions](docs/BUILDING.md)
 - [Community development](docs/CONTRIBUTING.md)
 - [Project scope](docs/SCOPE.md)
+
+
+---
+
+## E64 V1 Screenshots
+
+A look at Enhanced 64 running on the Raspberry Pi 3B+.
+
+<table>
+<tr>
+<td align="center">
+<strong>Commodore 64</strong><br>
+<a href="Screenshots/C64_Screen.png"><img src="Screenshots/C64_Screen.png" width="300"></a>
+</td>
+<td align="center">
+<strong>Main Menu</strong><br>
+<a href="Screenshots/Main_Menu.png"><img src="Screenshots/Main_Menu.png" width="300"></a>
+</td>
+<td align="center">
+<strong>Configurations</strong><br>
+<a href="Screenshots/Configs.png"><img src="Screenshots/Configs.png" width="300"></a>
+</td>
+</tr>
+<tr>
+<td align="center">
+<strong>File Manager</strong><br>
+<a href="Screenshots/File%20Manager.png"><img src="Screenshots/File%20Manager.png" width="300"></a>
+</td>
+<td align="center">
+<strong>Datasette</strong><br>
+<a href="Screenshots/Datasette.png"><img src="Screenshots/Datasette.png" width="300"></a>
+</td>
+<td align="center">
+<strong>Drive Reference</strong><br>
+<a href="Screenshots/Drive_Ref.png"><img src="Screenshots/Drive_Ref.png" width="300"></a>
+</td>
+</tr>
+<tr>
+<td align="center">
+<strong>Modems &amp; RS-232</strong><br>
+<a href="Screenshots/Modems.png"><img src="Screenshots/Modems.png" width="300"></a>
+</td>
+<td align="center">
+<strong>Fan Control Help</strong><br>
+<a href="Screenshots/Fan_Control_Help.png"><img src="Screenshots/Fan_Control_Help.png" width="300"></a>
+</td>
+<td align="center">
+<strong>Web Dashboard</strong><br>
+<a href="Screenshots/Web_Dashboard.png"><img src="Screenshots/Web_Dashboard.png" width="300"></a>
+</td>
+</tr>
+</table>
