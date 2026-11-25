@@ -3,7 +3,32 @@ import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:asser
 const source=fs.readFileSync('src/webui/assets/js/configs.js','utf8');
 const start=source.indexOf('async function changeDeleted('),end=source.indexOf('async function changeProtection(',start),action=source.slice(start,end);
 let answers=[],calls=[],questions=[],refreshes=0,messages=[],state={ready:true,operation:{request_id:7,id:'geos',state:2}};
-const context=vm.createContext({confirmE64:async(...args)=>{questions.push(args);return answers.shift();},sleep:async()=>{},setMsg:(...args)=>messages.push(args),loadConfigs:async()=>{refreshes++;},api:{deleteConfigPermanent:async(...args)=>{calls.push(args);return {request_id:7};},getDeletedConfigs:async()=>state}});
+// Exercise the production API with a simulated HTTP transport.
+const apiSource = fs.readFileSync('src/webui/assets/js/api.js','utf8');
+const api = await import('data:text/javascript;base64,' +
+  Buffer.from(apiSource).toString('base64'));
+
+globalThis.fetch = async (url, options = {}) => {
+  const parsed = new URL(url, 'http://e64.test');
+  assert.equal(parsed.pathname, '/api/configs/deleted');
+
+  if (options.method === 'POST') {
+    assert.equal(options.headers['X-BMC64-Web'], '1');
+    assert.equal(parsed.searchParams.get('permanent'), '1');
+    assert.equal(parsed.searchParams.get('confirmed'), '1');
+    calls.push([
+      parsed.searchParams.get('id'),
+      parsed.searchParams.get('legacy') === '1'
+    ]);
+    return new Response(JSON.stringify({request_id:7}), {
+      status:202
+    });
+  }
+
+  return new Response(JSON.stringify(state), {status:200});
+};
+
+const context=vm.createContext({confirmE64:async(...args)=>{questions.push(args);return answers.shift();},sleep:async()=>{},setMsg:(...args)=>messages.push(args),loadConfigs:async()=>{refreshes++;},api});
 vm.runInContext(action,context);
 for(const response of [[false],[true,false]]){answers=[...response];const before=calls.length;await vm.runInContext('deleteConfig({id:"geos",name:"GEOS"})',context);assert.equal(calls.length,before);}
 answers=[true,true];questions=[];await vm.runInContext('deleteConfig({id:"geos",name:"GEOS"})',context);assert.deepEqual(calls,[['geos',false]]);assert.equal(refreshes,1);
