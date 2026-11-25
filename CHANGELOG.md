@@ -1,0 +1,607 @@
+## 5.2.6 (pre-release)
+  * Profiles (in development, see [PROFILES.md](docs/PROFILES.md)):
+    * Ability to switch machines within a profile added and profiles keep BMC64 settings per machine (`settings-<machine>.txt`)
+  * Fix Plus/4 when booting in NTSC to select NTSC default kernal correctly  #400
+  * Add networking to all machines (added to: Plus/4, Plus4Emu, Vic20, PET)
+  * Add WebUI to all machines (added to: Plus/4, Plus4Emu, Vic20, PET)
+  * Plus/4 & Plus4Emu add BMC modem on the built-in ACIA ($FD00)
+  * VIC-20 add BMC modem on the userport RS-232 (KERNAL device 2)
+  * Fix for BMC modem to ignore anything typed before `AT`, so a stray byte no longer makes the next command fail
+  * Power menu (replaces Reset): Soft / Hard Reset plus new Reboot BMC64 and Shut down
+  * Web UI adds Shut Down quick action
+  * Reboot now writes out disk images first too
+  * Autostart: press Right on a disk or tape image to see its directory and pick the program to start #137
+  * Autostart opens in the disks folder (`/disks/<machine>`, or `/<machine>/disks`) instead of the card's root
+
+## 5.2.5 (pre-release)
+  * Add Latin American keyboard layout for C64
+  * Profiles (in development, see [PROFILES.md](docs/PROFILES.md)):
+    * Profiles for another machine: choosing one switches machine and restarts #213
+    * Fix network, Web UI and timezone settings of a profile being ignored
+    * Auto-attach disks: *Drives → Auto-attach options* saves the attached disks to be attached at power-on #390
+    * Web UI: new *Profiles* page to view, rename, delete and switch profiles, and the running profile on the Dashboard
+  * Show the current model in the PET and Plus/4 *Model* menu
+
+## 5.2.4 (pre-release)
+  * Fix for Logi Bolt receiver not connecting MX Mini or Mechanical keyboards #396
+  * Add profiles (in development): save complete setups and switch between them from the new *Profiles* menu. See [PROFILES.md](docs/PROFILES.md) #213 #295 #92 
+    * *Switch to* makes a profile the one used at every power-on; *Start once* uses it for one session only
+    * A profile can autostart a program or disk image at power-on #390 #185
+
+## 5.2.3 (pre-release)
+  * Fix drive LED showing previous drive type's colour #112
+  * Fix snapshot load cursor being one row off after save #200
+  * Skip macOS AppleDouble metadata files ("._name") #251
+  * Add drag-and-drop uploading of files to the WebUI File manager
+
+## 5.2.2 (pre-release)
+  * Fix crash loading snapshots with a 1581 drive (e.g. GEOS D81) #393
+  * Fix possible crash restoring D81/D80/D82 disk images from snapshots #393
+
+## 5.2.1 (pre-release)
+  * Fix long filenames crashing disk attach and autostart #386
+  * Support 255-byte names in the OSD and Web UI
+  * Prevent Web UI rename truncation
+  * Refactor of keyboard input (`BMC64_NEW_KEYBOARD_INPUT`) 
+    * **Warning:** choose your keyboard again after updating, and back up any customised `.vkm` keymap files before copying the new ones over, as symbolic keymaps now use a new format. See [Keyboards in the User Guide](docs/USER_GUIDE.md#keyboards)
+    * Add support for international keyboard layouts, in OSD and Vice
+    * Backport VICE 3.4 Shift, Ctrl and AltGr keymap conditions, and improve shift handling for symbolic mappings
+    * Add UK English, German, French, Norwegian, layouts
+    * Add Alt-GR modifier for US English to be able to print shifted PETSCII glyphs
+    * Separate Keyboard Layout and Keyboard Mapping choices, with per-machine presets and saved settings
+    * Handle Shift+cursor navigation in the menu, avoiding duplication
+    * Add Split Shift and key latch changes (`BMC64_KEYBOARD_SPLIT_LATCH`), to stop random incorrect char output for when inputting shifted chars 
+    * Improve missing keymap file error message
+    * Correct ISO keyboard extra-key handling and add NonUSBackSlash to the C64 positional keymap
+    * Add automated keyboard regression tests and run keyboard and Web UI tests at the start of the build for earlier failures
+    * Add missing PET positional vkm files
+    * Make Keyrah V3 selectable from OSD menu
+
+## 5.2.0
+  * Make the BMC64 Updater configurable for forked repositories 
+  * Update to circle-stdlib v21 (inc Circle Step 51.1.1) and remove patches now included
+  * Fix 1551 read errors on Plus4 after changing drive type at runtime #73
+  * Add an updater: put a release zip on the card as `bmc64-update.zip` and choose which files to replace at boot. See [UPDATING.md](docs/UPDATING.md)
+  * Web UI: Update page shows the latest GitHub releases and allows upload of a zip file which is saved as `bmc64-update.zip`, ready for update on next boot.
+  * Web UI: create and edit C64 BASIC programs in the file browser, saved as `.prg` files
+  * Web UI: add automated tests to build runs and development web server launches
+  * Web UI: uploaded files keep their original modified date and time instead of the upload time
+  * Web UI: Add file editor for direct editing of configuration files
+  * Web UI: file browser can create folders and rename files and folders
+  * Web UI: folders can be deleted together with their contents
+  * Web UI: `.crt` cartridge images can be attached from the file browser (Attach cartridge)
+  * Web UI: convert action buttons to Actions menu (Autostart, Edit, Download, Rename, Delete)
+  * Fix Pi Zero playing no sound for volume register digis (e.g. Impossible Mission speech) with the 8580 SID model
+  * Re-enable saving VFP registers in interrupt handlers on Pi Zero, prevents sound error
+  * Add an "Optimising BMC64" documentation with information on how to reduce load: [OPTIMISING.md](docs/OPTIMISING.md)
+  * Add an optional (`--perf-stats`) argument to build a performance diagnostic version of BMC64
+  * Flush disk writes to SD card to prevent data loss. 
+    * Can be disabled by setting "Prefs->Flush disk writes" to "On demand" if performance is impacted.
+  * Fix unable to save settings after multiple hard resets #373
+  * Web UI: click a disk image, tape or PRG in the file browser to autostart it
+  * Include BMC64 version in logging
+  * Update Raspberry Pi firmware files to the latests version
+  * Add CapsLock latching for USB keyboards, and setting CapsLock LEDs
+  * Fix a rare out-of-bounds memory write in USB channel allocation under heavy device load
+  * Fix SetLEDs on 8bitdo Retro keyboards (ensure CapsLock light works)
+  * Update Positional and Maxi Positional vkm file to use Shift Lock code
+  * Harden USB connection alive and tolerate some USB transaction errors without dropping the connection.
+  * Fix persistent USB errors on full-speed devices behind the onboard hub by widening periodic split-transaction timing to 2 microframes #235
+  * Add rpi_keyrah_v3_pos.vkm mapping file for Keyrah V3 support in C64 machine.
+  * Fix forced start sector partition mounting #369 
+    * Refactor of original 4.2 fix 410cd4f
+  * Add an optional LAN Web UI 
+    * Active only for C64/C128 machines (default off)
+    * Reports SoC temperature and Raspberry Pi under-voltage / throttling state
+    * SD card file browser: download, upload, and delete files 
+    * "Disable Web UI" stops the server immediately without a reboot
+    * Optional PIN ("Web UI PIN" in the same menu) gates access via HTTP Basic Auth
+    * Details: [docs/WEBUI.md](docs/WEBUI.md)
+  * Switch modem default to D700 to stop cartridge clashes
+  * Remove FD2000 and FD4000 from bootstat code for VIC20 and PLUS/4
+  * Expose VICE REU settings for C128 machine
+  * Support large CMD HD and IDE64 hard-disk images that do not fit in RAM
+    * Images over 32 MB now stream directly from the SD card instead of being
+      loaded whole into memory (which failed with "out of memory")
+    * FatFs fast seek is enabled so streamed access stays responsive
+    * Maximum image size is just under 2 GB (FAT32 / 32-bit file offsets);
+      larger images are refused at attach with a clear log message
+    * Smaller images (floppies, REU images, snapshots) are unchanged
+  * Changed main menu to always have a consistent font for all machines
+    * Menu, status bar and OSD text now render with BESCII font instead of the active machine's CHARGEN ROM.
+    * Menu text is now decoded from UTF-8 with a full Latin-1 character set.
+    * Added a hidden font test screen, opened by pressing Enter on the last line of the About screen.
+  * Partial fix for #331, add basic mapping to allow keyboards to enter shifted characters in main menu.
+
+## 5.1.0
+  * Add missing CMD HD drive option for Plus/4, lost in the original backport
+  * Drives > Change ROM... now only lists the drive ROMs each machine supports
+  * [INSTALLATION.md](docs/INSTALLATION.md): now only lists the drive ROMs each machine supports
+  * Fix PET 1080p HDMI modes crashing on boot with the CRT shader enabled
+    * Add gpu_mem=128 to machines.txt and enable for PET machine
+    * Add graceful fallback if gpu_mem=64 is exceeded (disable shader)
+  * Fix PET boot crash where VICE's video callbacks run before the menu is built (NULL menu items -> bad stretch -> assert/data abort on Circle 51)
+  * Tolerate stale (PET) settings file entries
+  * Faster storage access
+    * Attaching large files is much faster (a 16 MB REU image went from ~12.5 seconds to ~1.1 seconds)
+    * Directory scanning of large folders is much faster (a 1300-file folder went from ~51 seconds to ~0.08 seconds)
+  * Boot log now reports the SD card bus speed (high-speed or standard)
+  * Added an optional storage-diagnostics build (`--io-stats`) for performance tracing
+  * Fix BOOTSTAT_WHAT_STAT behaviour to correctly match on listed files (boot up optimisation)
+  * Documentation updates:
+    * [NETWORKING.md](docs/NETWORKING.md): additional clarifications
+    * [INSTALLATION.md](docs/INSTALLATION.md): improve rom information
+    * [THIRD_PARTY.md](docs/THIRD_PARTY.md): add third party details
+  * Fix for wi-fi not connecting to eero7 #335
+  * Add easy control of logging from main menu, to track down problems or to include with bug reports or issues
+    * Details: [User Guide: Logging](docs/USER_GUIDE.md#logging)
+  * Expose Vice supported features in BMC64
+    * FD2000 / FD4000 drives
+    * REU Image File settings
+  * Refactor networking support and decouple ACIA from BMC modem backend
+  * Standardise repository layout, move docs to docs, and source code to src
+  * Add support for USB mouse as Micromys. Brings scrolling to C64 OS.
+  * Fix for networking in C128 mode #320
+  * Add mapping for F9 to Esc in C128 symbolic keymap
+  * Add support for up to 4 keyboards and mice
+  * Map End key to Help for C128 keyboard
+  * Fix C128 physical 40/80 key display switching
+  * Vic20 startup crash fix #319 
+  * Add memory debug enabling functionality
+
+## 5.0.0
+  * Fixed an issue that prevented USB mice from working
+  * TDE per drive support added
+  * CMD HD changed to no operation when detached
+  * Compilation fix for Pi0
+  * teensy-resid initialisation crash fix for Pi0
+  * Ported BMC64 to Circle 51 / circle-stdlib v20
+    * Circle 43 introduced USB PnP, making it possible to switch USB devices while BMC64 is running
+    * Details: https://github.com/rsta2/circle/blob/master/CHANGELOG.md#the-43rd-step
+  * Updated toolchain to GCC 15.2.Rel1
+    * Download: https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
+  * Reapplied the following original BMC64 patches adapted to new toolchain
+    * Multicore support and enabled USB FIQ handling
+    * Direct loading of files into memory to reduce unnecessary SD-card reads
+  * Fixed PiZero build issues post update
+  * Added USB PnP support
+  * Added support for 8bitdo Retro Keyboards inc the C64 model (both wired and via 2.4Ghz USB receiver)
+  * Added "Reset to default bindings" option in USB gamepad configuration menu
+    * Currently supports 8bitdo, Xbox360, and generic controllers
+  * Changed USB gamepad menu to display the name of the device connected instead of "CONNECTED"
+  * Added support for various 8bitdo 2.4Ghz controllers in Xinput mode
+    * Including 8BitDo Ultimate 2C 2.4G, 8BitDo Pro 3 controller, 8BitDo M30 2.4G controller.
+  * Fixed disconnect quirks with 8bitdo controller docks when putting the controller back into the dock and picking it up again.
+  * 8BitDo USB Wireless Adapter 2 was already supported as an emulated Xbox360 controller, this allows connection of almost any 8bitdo bluetooth controller.
+  * Refactor and clean up of all Circle patches
+  * Added support for the Xbox 360 PC Wireless Gaming Receiver (and clones)
+  * Fixed 8BitDo Retro Keyboards being incorrectly detected as USB mice
+  * Improved USB controller compatibility, including better 8BitDo XInput
+    interface detection and USB device descriptions
+  * Clean up of USB gamepad configuration menu
+  * Added usbpowerdelay=1000 to the default cmdline.txt configuration, to stop 8bitdo controllers connecting as Switch Pro controller on startup
+  * Improved build scripts to apply patches more reliably and avoid stale
+    build artifacts
+  * Note: PiZero is best used with a powered OTG USB hub as some devices can cause brownouts and device shutdowns
+  * Make connecting of 8BitDo USB Wireless Adapter 2 more robust
+  * Handle idle states of 8bitdo receivers 
+  * Removed incorrect up arrow key mapping for 8bitdo Retro Keyboards
+  * Added ethernet and Wifi networking support for C64 (and C128 untested) 
+  * Added Network menu to control device selection and Wifi credentials
+  * Added scanning of Wifi APs
+  * Added BMC Software Modem to connect to BBS (auto configured on network connect)
+    * Select Swift/DE modem (e.g. in CCGMS Ultimate)
+  * Added patch for Circle ACK handling causing networking stalling
+  * Improved development building tools
+    * Build everything in one command `build_sdcard.sh`
+    * Automatic downloading of required toolchain GCC 15.2.Rel1
+    * Added automatic download of networking drivers during SDcard build
+    * Added --skip-patches option to build faster without changing third party libs
+  * Added support for C64 OS C64 Network Protocol (CNP)
+  * Extend BMC Software Modem to support C64 OS slde.zi driver
+  * Default SwiftLink at $DE00 and route its interrupts through NMI
+  * Various improvements and fixes to aciacore and rs232 for C64 OS support
+  * Update NETWORKING documentation
+  * Fix DEVICE NOT FOUND issue when connecting CMD HD images for the first time
+  * Support alternate version of THEC64 keyboard found
+  * Add Network Status menu item for clearer network state
+  * Move Network menu folder below Network Status
+  * Add $D700 and $DF00 SwiftLink modem-address options for IDE64 compatibility
+  * Add menu items to be able to configure IDE64 settings
+  * Flush IDE64 and CMD HD image writes to disk to prevent possible data loss
+  * Ignore 0 length seek events to speed up cartridge loading
+  * Add file filter for *.cfa and *.hdd for IDE64 images
+  * Add $DF80 SwiftLink modem-address option for IDE64 compatibility
+  * Add setting localtime on the Raspberry Pi after a successful network connection
+  * Avoid false VICE audio-underrun messages at startup
+  * Fix emulator slow downs while Ethernet link is down
+  * Correct network connect message when switch a single microSD card between different models of Raspberry Pi
+  * Back port RTC code from Vice 3.10 to set the correct time in CMD-HD images
+  * Time improvements and fixes allow C64 OS to start with the correct time set 
+  * Fix placement of the CRT files in the building of the SD Card
+  * Update NETWORKING.md with details on firmware files requirement
+  * Add specific WiFi firmware missing warning and fix startup crash with missing firmware
+  * Improve logging on snapshots
+  * Fix snapshot write failure when networking is active by activating CARTRIDGE_TURBO232 snapshot code
+  * Add github build workflow
+  * Fix possible overflow bug in vdrive snapshot
+  * Port drive snapshots to use per-drive TDE for all four drives
+  * Implement simple CMDHD support in snapshots
+  * Fix version for creation of p64images in snapshots
+  * Implement per-drive TDE in drive snapshots
+  * Support backwards compatibility for old drive snapshot versions
+  * Fix TDE set to zero bug when saving settings after a snapshot restore
+  * Improved development building tools
+    * Add GitHub workflow to build full SDCard
+    * Reworked `make_release.sh` to work with GitHub workflow
+    * Refactor `make_release.sh` and `build_sdcard.sh` to share code
+    * Add `check_release_files.sh` to confirm SDCard image is correct
+  * Tested on PiZeroW, PiZero2W, Pi2B, Pi3A+, Pi3B+ models
+
+## 4.2
+  * Fix incorrect END key mapping
+  * Add 256k and 1024k memory options to plus4emu
+  * Support more recent Maxi keyboard
+
+## 4.1
+  * VIC20 symbolic keymap - F3 maps to C=
+  * Add cmdhd support for C64OS (requires JiffyDOS)
+
+## 4.0
+  * Boot to VDC if 80 column key is down (C128)
+  * Fix CNTRL-F7 safety switch problem if roms not found
+  * Add raster_skip2 to enable raster skip for VDC only
+
+## 3.7
+  * Fixed RCNTRL key not recognized in keymap files
+  * Provided keymap file for real C16 keyboards
+  * Applied XBOX num buttons patch by rhester
+  * Use gamepad analog axes as paddles (for custom built controllers)
+  * Apply 8580 filter fix (rhester)
+  * Fix transparency not restored properly after reboot
+  * Fixed issue #163 with custom gpio preventing gamepad input
+  * Enable dual sid menu for C128
+  * Enabled sound drive emulation for Pi0
+  * Added virtual devices menu option (#140)
+  * Added disk drive flush function
+  * Added PETSCIIBOARD keyboard mapping
+  * Fix build issue due to -pthread being added
+
+## 3.6
+  * Added davej's CRT shader
+  * Removed 'cheap' scanlines from PET (replaced by shader)
+  * Increased Pi0 audio sample rate to 44100
+  * Added AutostartWarp switch
+  * Added DriveTrueEmulation switch
+  * Fixed stretch params not saving for VDC (C128)
+  * Fixed bug with raster_skip (cmdline.txt)
+  * Fixed incorrect scaling param in machines.txt NTSC C128 59.825hz
+  * Fixed "Sound running too slow" problem on Pi0
+
+## 3.5
+  * Allow same joystick GPIO mapping on multiple pins with custom GPIO
+  * Added 'Maxi' keyboard support , new vkm files switchable from menu
+    (Thanks to youtube user 'ody ody' for figuring out the keymap file! See
+     README.md for tutorial link and Reddit post.)
+  * Fixed CP/M keyboard not responsive regression
+  * Fixed duplicate GPIO pins on Config #1 issue
+  * Disable VDC video cache causing glitches on some games
+  * Added Dual SID support (also made pseudo stereo effect possible)
+  * Changed border trim menu options from % to absolute pixel values
+  * Added support for negative border values (padding)
+  * Added scaling_params to machines.txt for integer scaling when possible
+  * Made finding integer scaling options easier from menu
+  * Changed PET resolutions to 1080p in default machines.txt
+  * Fixed bug with PET screen init after model switch
+  * Added menu optionm to turn scaling interpolation off
+
+## 3.4
+  * Added Resid Interpolation and Fast Resampling for Pi3
+  * Added vertical stretch to better align with real scanlines on CRTs
+  * Added saturation to video color menu
+  * Added "Look for files in" option: /C64/{dir} or /{dir}/C64
+  * Added (cheap) PET scanlines video option
+  * Added configurable gpio
+  * Fixed IEC mode not working after plus4emu attach/detach
+  * Fixed PET color and video settings after boot not applied
+  * Fixed bug with files list if /disks dir was missing
+  * Fixed DRIVES drive rom discovery issue
+  * Fixed PET vertical centering issue
+  * Fixed issue with debounce routine on GPIO button functions
+  * Removed drive roms from bootstat to not interfere with path lookup
+  * Merged Mark Bush's Userport changes (See README.md on how to activate)
+
+## 3.3
+  * Add PET emulator
+  * Add DPI support
+  * Add 2 more USB gamepads for user port joysticks
+  * Renamed menu label 'Aspect Ratio' to 'H Stretch Factor'
+  * Plus4Emu filter on PRG files for Load .PRG menu
+  * Fixed Composite out due to bootcode.bin/start.elf/fixup.dat files
+  * Removed custom HDMI timing from plus4emu until I can fix sound issues
+  * Removed incorrect 50.125hz VIC20 mode from machines.txt
+  * Menu shows actual fps for mode
+  * Virtual keyboard for PET does not work
+
+## 3.2
+  * Fixed VIC20 crash on Port 1 menu option change to 1351 Mouse
+  * Fix 1551 and 1581 ROMs not loading in plus4emu
+  * Added Symbolic and Postional keyboard options
+
+    Defaults to Symbolic which is different from what was released up
+    to now. Named the keymap file incorrectly.
+
+  * Added disabled option to gpio config
+  * Moved up to v40 of circle in prep for Pi4
+
+## 3.1
+  * Added Plus4Emu option (more accurate PLUS/4 but Pi3 only)
+  * Reboot after machine switch
+  * Fix mouse issue with Final Cart III
+  * Fix datasette not available after snapshot load
+  * Fix ntsc-custom timing mode sound sync issue
+  * Added memory config option for plus/4
+  * Added drive memory options for VICE emus
+  * Lots of internal src reorg, new layers to plugin different emulators
+
+## 3.0
+  * Unified C64, VIC20, C128 and PLUS/4 into one release
+  * Fixed cycles_per_second bug causing custom hdmi to not work
+  * Look for carts, tapes, disks etc in machine subdir first
+
+## 2.5.1
+  * Fixed Vic20 cartridge menu
+  * Fixed Plus/4 cartridge menu
+  * Real keyboard matrix for Plus/4 to match C16 positional layout
+
+## 2.5
+  * Added Plus/4
+  * Added WaveShare Game HAT GPIO support
+  * Navigate virtual keyboard with GP even if not set in a port
+  * Navigate virtual keyboard with GP when GPIO banks 1 or 2 set to any port
+  * Menu reorg : +Machine, moved ROMs under
+  * Add drive ROM change menu item
+  * Add parallel cable option on drives
+  * Fix GPIO virtual keyboard navigation too fast
+  * Added Menu navigation button options to GPIO config 1
+  * Added Volume control
+  * Fixed wrong keycode for Alt_L
+  * Cleaned up keycodes in rpi_sym.kym files
+
+## 2.4
+  * Activated real keyboard and joystick scan for PCB
+  * Added GPIO Config PCB or No-PCB options + documentation
+  * Added CTRL + F[1,3,5,7] Programmable Hotkeys
+  * Added ability to mount up to 3 USB thumb drives
+       * Default drive is SD: but USB1, USB2, USB3 can be selected
+         by selecting the first item in any files dialog.
+       * Only the first partition will be mounted
+  * Added ability to set IEC mode on all drives, not just 8
+  * Added selection of IEC dir
+  * Paint menus stacked on top of each other like they used to be
+  * Fixed tape counter not updating properly (again)
+
+## 2.3.1
+  * Fixed regression with status bar, showing old/default values
+  * Fixed HOME/DEL/Pound keys for Vic20 Virtual Keyboard
+  * Show PETSCII chars when virtual keyboard shift/commodore held
+
+## 2.3
+  * Add virtual keyboard
+  * Added vertical/horizontal positioning menu options
+  * Applied video settings to menu so it is made visible same as VIC display
+  * Fixed navigation bug inside C128 rom files list, couldn't navigate out
+  * Removed 2nd LED for drive status lights (never seemed to activate)
+  * Added bmc64-lite build for PiZero
+  * Made palettes independent for each layer
+
+## 2.2
+  * Minor regression on audio latency fixed. Badly placed previous fix was
+    causing extra frame delay.
+
+## 2.1
+  * Major overhaul of how video is handled
+    * Added C128 VDC support with VIC/VDC toggle as well as
+      PIP and SIDE-BY-SIDE display options
+    * C128 40/80 Column Key
+    * Added separate layers for VIC, VDC, UI and STATUS bar using dispmanx API
+    * Can adjust video canvas border trim and aspect ratio in real time now
+      (all *_canvas_width, *_canvas_height params removed from cmdline.txt)
+    * Used VICE buffer alloc/free/clear callbacks to have VICE draw directly
+      into fb2's frame buffer
+    * Added transparency support to UI layer
+    * UI is made transparent while video adjustments made to show user what
+      is changing
+    * Added status bar padding to adjust location of status bar
+
+## 2.0
+  * Fixed default values for bootstat for each machine
+  * Added Menu Back/Run Stop usb button for easier menu nav from gamepad
+  * Handled real keyboard scan into ui
+  * Add custom keysets for joysticks
+  * Add cuttom key bindings for usb buttons
+  * Remember last cursor position in file lists
+  * Fixed badling named cycles_per_refresh to cycles_per_second
+    (but old name still works)
+  * Put canvas height back to 288 for C64
+
+## 1.9
+  * First release of BMVIC20 available
+  * Updates BMC128 available with a few fixes
+  * cmdline.txt has changed and should be udpated:
+
+    PSA:
+
+    If you are in the habit of just updating the kernel file, best to update
+    cmdline.txt with this release.  canvas_height,canvas_width parameters
+    have been renamed to vicii_canvas_height, vicii_canvas_width to
+    distinguish between C64 and VIC20 (or other future) video chips that need
+    different sized frame buffers.  Also, I changed the way the emulated
+    display is drawn to fix some unused black border issues on both C64/C128
+    and VIC20 so the C64/C128 frame buffers are now a different size.  If
+    you find your video output is squished after this update,
+    best to confirm you are using the new cmdline.txt settings. This change
+    'zooms' the video in a bit so more of the screen is used.  It also looks
+    better on composite out.
+
+  * Moved bootstat.txt into machine dirs so they can be different for machines
+  * Fixed C128 kernal/basic/chargen ROM load menu options
+  * Fixed bug where POT Y Up/Down values could not be set
+  * Fixed bug with some 'empty' USB button function menu options
+  * Added menu item to create empty disks
+  * Reorg some menu items
+  * Added Home/PageUp/PageDown/End handling in menu (also F1/F3/F5/F7)
+    for real keyboard users
+  * Added first letter search in menus (press a letter and cursor will jump
+    to next occurrence of an item that starts with that letter).
+
+## 1.8
+  * Added 1351 Mouse support via USB Mouse
+  * Sorted files in directory listings
+  * Added Reset Soft/Hard button/hotkey functions
+  * Fixed 'half' brightness issue with color palette.
+    Colors were half intensity of what they should have been.
+
+## 1.7
+  * Internal prep for building BMCV20 and BMC128
+  * Fixed issue where space or cntrl was not functional if curs+space or
+    curs+lcontrol was selected for joystick
+  * Added custom HDMI timing tool to calculate actual fps from custom modes
+    Use to prevent audio sync / popping issues on modes that aren't exactly
+    50 / 60 hz
+  * Added audio_out cmdline.txt option (hdmi, analog, auto) for cases where
+    auto doesn't do the right thing.
+  * Added hot key functions for Keyrah users. Can map Commodore + F1, F3, F5, F7
+    to one of the available functions (Menu, Warp, Toggle Status, Swap Joy, etc)
+  * Added Autostart Disk/Tape/Prg/Cart menu option
+  * Added Tape OSD to control tape using USB or HotKey
+  * Added Cart OSD to control common cartridge functions using USB or HotKey
+  * Added EasyFlash Save Now feature (also available in Cart OSD)
+  * Added Cartridge Freeze feature (also available in Cart OSD)
+  * Fixed bug where drive models would show up even though ROM was not available
+  * Added threshold % for analog gamepad sticks
+
+## 1.6
+  * OMG! Boot time down to 3.5 seconds!!!
+  * Added brightness, gamma, tint and contrast controls
+  * Fixed status bar showing at boot even though show never was selected
+  * Fixed sid re-initialization not using correct frag/buf sizes
+  * Re-designed disk drive model selection. More like a popup.  Must go
+    back to emulator after each selection.
+  * Save and restore drive models properly.
+  * Added warp and joystick swap indicators to status bar
+  * In addition to Fire/Menu, USB buttons can now be mapped to
+    Warp, Status Bar Toggle and Joy Port Swap
+  * Added error message if emulator won't start (possibly no roms)
+  * Added ability to save default cartridge
+  * Sid/DriveEmulation save/restore moved to vice.ini
+  * Added load kernal, basic, chargen roms and save as defaults
+  * Fixed audio sync bug at boot where audio was behind until a cart was
+    attached or user spent some time in menu. Fixed with a hack to re-init
+    sid engine after boot.
+
+## 1.5
+  * Properly idle cores (3 cores were spinning causing CPU temperature
+    to be hotter that required)
+  * Added option to not reset tape on machine reset
+  * Added missing option to reset just counter (not tape)
+
+## 1.4
+  * Moved to VICE 3.3
+  * Added status bar in Prefs to show disk/tape counter/controls/motor etc
+    at bottom of the screen.  It can be turned on permanently or triggered
+    by activity and disappears after a timeout.
+  * Fixed CRT attach issue that was leaking/clobbering memory
+  * Fixed CBM File Browser not going into subdirectories (or up to parent)
+  * Added missing fixup.dat so pi will report actual memory available
+  * Added LeftControl + Cursor keys as joystick option
+  * Got drives 9,10,11 working
+  * Added 1541, 1571 and 1581 drive models with option to change
+
+## 1.3
+  * Boot time reduced to 5 seconds for both SID engine types.
+  * Composite video refresh rate was discovered to be a tiny fraction higher than 50/60 hz and resulted in audio data accumulating in the audio buffer over time (causing audio latency). Added pal-composite and ntsc-composite machine_timing parameters to set it properly.
+  * Changed main release format to a zip file with flat files rather than an img to flash. This will let people chose the size of their SD card partitions and make updating easier. The .img file is still available with a 300Mb partition now.
+
+## 1.2
+  * Fixed issue where defaults were not taking effect when
+    settings file was missing
+  * Fixed issue where info dialogs were triggering save
+    snapshot dialog
+  * Fixed IEC mode not able to change dirs using
+    open 1,8,15,"cd:newdir":close 1
+  * Added ability to mount extended partitions by start sector
+  * Only flush RDWR in-memory files back to disk if written to
+  * Fix issue with filenames > 32 chars not accessible
+
+## 1.1
+  * Added directory support
+  * Long filename support added
+  * Added Pepto-Pal color palette to prefs
+  * Fixed audio sync bug for ntsc timing
+  * Created tools dir for delay test programs
+  * Made mounted partition configurable
+  * Fixed unshiftable keys bug
+  * Added temperature notes to README.md
+  * gpu_mem changed to 64mb in mem config and config.txt
+  * changed mem to 512mb in circle mem config
+  * fixed issue with 0 key on snapshot file names crashing
+  * debounced GPIO16 for menu
+  * fixed issue with resid restart causing slowness
+
+## 1.0.9
+  * Fix lockup issue caused by joystick value changes called from ISRs
+  * Default PAL composite to progressive mode (18)
+  * Fixed gpio16 not bringing up menu (still need to debounce)
+  * Improved GPIO joystick response time (~45ms avg)
+
+## 1.0.8
+  * Support read/write mode for files
+    * Save to D64 files
+    * Create snapshots
+  * Better menu navigation with auto repeat and acceleration during hold
+  * Added error/info dialogs for errors or confirmation of actions
+  * Fixed wierd behavior with shift+down/right mapping to up/left for keyrah
+  * Fixed audio cut out after sound engine restarted 8 times
+
+## 1.0.7
+  * Fixed emulator lockup issue
+    * Queues key events from ISR to main loop
+  * Fixed keyboard issue with Commodore + F7 combo
+    * Emulator would get stuck commodore key
+
+## 1.0.6
+  * Added Commodore + F7 to trigger menu for real keyboard users
+  * Added ReSid
+     * Added Fast/ReSid options (default to ReSid)
+     * Added Sid model options 6581/8580 (default 6581)
+     * Added Sid filter option (default On)
+  * Had to increase kernel max to 32MB due to huge uninitialized
+    data section added by libresid.a
+  * Replaced inefficient bss clear routine with hand rolled asm
+  * Placed main emulator loop on core 1 while core 0 services interrupts
+  * Fixed bug with DB9 joysticks ports backwards for menu control
+
+## 1.0.5
+  * Added configuration of usb button functions (fire or menu, more later)
+  * Added drive sound emulation and volume to menu
+  * Made menu larger
+  * Moved USB config into a sub menu
+  * Fixed hanging issue with gamepad when # analog axes > 4
+  * Added raw usb monitor to help with gamepad config
+
+## 1.0.4
+  * Fixed save/restore joystick port selection issue
+  * Pause emulation when ui is activated
+  * Added tape controls (for .tap only)
+  * Switch to soft usb irq for better gamepad support
+
+## 1.0.3
+  * Add hide_console=0 option in cmdline.txt to diagnose startup issues
+
+## 1.0.2
+  * GPIO joystick was broken in 1.0.1 - FIXED
+
+## 1.0.1
+  * Initial release
+

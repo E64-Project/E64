@@ -1,0 +1,62 @@
+# ==============================================================================
+#                   BMC64 5.2.6-R3 - C64 Video Modes
+# ==============================================================================
+#
+# This file defines selectable C64 video and timing configurations.
+# Each [section] is one entry in BMC64's machine selection menu.
+#
+# The names and timing values below are preserved from the working R3 setup.
+# Change video timings only if you understand your monitor's requirements.
+#
+# ==============================================================================
+# 1. STANDARD NTSC HDMI - 720p / 60 Hz
+# ==============================================================================
+#
+# Standard HDMI mode, suitable for most modern 720p-compatible displays.
+# Uses VICE's NTSC HDMI timing and scales the C64 image to 1152 x 720.
+#
+[C64/NTSC/HDMI/VICE 720p@60Hz]
+disable_overscan=1
+sdtv_mode=16
+hdmi_group=1
+hdmi_mode=4
+machine_timing=ntsc-hdmi
+scaling_params=384,240,1152,720
+
+# ==============================================================================
+# 2. CUSTOM NTSC HDMI - 768 x 525 / 59.827 Hz
+# ==============================================================================
+#
+# Matches real NTSC C64 timing more closely, but may not work on every
+# monitor. Do not change hdmi_timings or cycles_per_second casually.
+# VICE cycles_per_second is 1022730; this custom value is 0.000587% faster.
+#
+[C64/NTSC/HDMI/VICE 768x525@59.827Hz]
+sdtv_mode=16
+hdmi_group=2
+hdmi_mode=87
+hdmi_timings=768 0 24 72 96 525 1 3 10 9 0 0 0 60 0 31416828 1
+machine_timing=ntsc-custom
+cycles_per_second=1022736
+scaling_params=384,246,768,492
+
+# ==============================================================================
+# NOTES
+# ==============================================================================
+#
+# - The first mode is the general-purpose 720p option.
+# - The second mode is for compatible displays requiring closer NTSC timing.
+# - Lines beginning with # are comments; BMC64 ignores them.
+# - Keep the section names and active values intact unless intentionally
+#   configuring a different display or timing profile.
+#
+# ==============================================================================
+
+# E64 Default PAL: standard CEA 720p50 HDMI, using the existing machine switch.
+[C64/PAL/HDMI/VICE 720p@50Hz]
+disable_overscan=1
+sdtv_mode=18
+hdmi_group=1
+hdmi_mode=19
+machine_timing=pal-hdmi
+scaling_params=384,240,1152,720

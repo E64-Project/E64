@@ -1,0 +1,8 @@
+# BMC64 R3 Wi-Fi configuration TEMPLATE (not active until renamed).
+# Copy to 'wifi-settings.conf' at the SD-card root, then enter your details.
+# This is WPA Supplicant syntax, not KEY=VALUE network.cfg syntax.
+# Keep credentials private. Restart BMC64 after changing this file.
+network={
+    ssid="YOUR_WIFI_NAME"
+    psk="YOUR_WIFI_PASSWORD"
+}

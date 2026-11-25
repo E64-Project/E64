@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 470" role="img" aria-labelledby="title desc">
+<title id="title">Fan Control Circuit</title>
+<desc id="desc">GPIO11 physical pin 23 drives Q1 base through R1. R2 pulls base to common ground. Q1 emitter connects ground and collector connects fan negative and D1 anode. Fan positive and D1 cathode connect incoming regulated +5V before the supply branches to Raspberry Pi.</desc>
+<rect width="820" height="470" fill="white"/>
+<g id="circuit" transform="translate(21 0)">
+<g fill="none" stroke="#222" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+<!-- Three aligned terminals; incoming supply feeds fan and flyback cathode. -->
+<path d="M240 65H635V130 M535 65V105 M535 185V225H635V170 M535 225V280"/>
+<circle id="fan" cx="535" cy="145" r="40"/>
+<!-- D1 cathode bar at the upper supply, anode at the collector node. -->
+<path d="M620 130H650 M620 170L635 130L650 170Z"/>
+<!-- R1 feeds base; R2 pulls base to ground; NPN emitter arrow points out. -->
+<path d="M240 320H285 M345 320H490 M490 295V345 M490 307L535 280 M490 333L535 365V410H240"/>
+<rect x="285" y="310" width="60" height="20"/>
+<path d="M515 358L526 347L535 365Z" fill="#222"/>
+<path d="M395 320V350 M395 390V410"/>
+<rect x="385" y="350" width="20" height="40"/>
+<circle class="input" cx="240" cy="65" r="4"/><circle class="input" cx="240" cy="320" r="4"/><circle class="input" cx="240" cy="410" r="4"/>
+</g>
+<g fill="#222"><circle id="fan-upper-node" cx="535" cy="65" r="4"/><circle id="fan-lower-node" cx="535" cy="225" r="4"/><circle cx="395" cy="320" r="4"/><circle cx="395" cy="410" r="4"/></g>
+<g font-family="sans-serif" font-size="20" fill="#111">
+<g text-anchor="end"><text x="215" y="72">+5 VDC</text><text x="215" y="313">GPIO Pin 23</text><text x="215" y="339" font-size="18">(3.3v control)</text><text x="215" y="417">GND</text></g>
+<text x="300" y="295">R1</text><text x="350" y="378">R2</text>
+<text x="462" y="295">B</text><text x="553" y="284">C</text><text x="553" y="374">E</text><text x="573" y="327">Q1</text><text x="660" y="158">D1</text>
+<g text-anchor="middle"><text x="535" y="128">+</text><text x="535" y="152" font-size="18">FAN</text><text x="535" y="176">−</text></g>
+</g></g></svg>

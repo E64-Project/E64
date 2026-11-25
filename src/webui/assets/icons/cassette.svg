@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" shape-rendering="geometricPrecision">
+  <g transform="translate(8 8) scale(1.08571429) translate(-8.00000000 -8.50000000)">
+    <rect x="1" y="4" width="14" height="9" rx="0.75" fill="#D0D0D0" shape-rendering="geometricPrecision"/>
+    <rect x="2" y="5" width="12" height="7" fill="#8A5A19"/>
+    <circle cx="5" cy="8" r="1.5" fill="#D0D0D0" shape-rendering="geometricPrecision"/>
+    <circle cx="11" cy="8" r="1.5" fill="#D0D0D0" shape-rendering="geometricPrecision"/>
+    <circle cx="5" cy="8" r="1" fill="#000000" shape-rendering="geometricPrecision"/>
+    <circle cx="11" cy="8" r="1" fill="#000000" shape-rendering="geometricPrecision"/>
+    <rect x="7" y="7" width="2" height="2" fill="#D0D0D0"/>
+    <rect x="7.15" y="7.2" width="1.7" height="1.6" fill="#000000" shape-rendering="geometricPrecision"/>
+    <path d="M4.5 11h7l.5 2H4Z" fill="#333333" shape-rendering="geometricPrecision"/>
+    <circle cx="5.5" cy="11.5" r="0.36" fill="#D0D0D0" shape-rendering="geometricPrecision"/>
+    <circle cx="5.5" cy="11.5" r="0.23" fill="#000000" shape-rendering="geometricPrecision"/>
+    <circle cx="10.5" cy="11.5" r="0.36" fill="#D0D0D0" shape-rendering="geometricPrecision"/>
+    <circle cx="10.5" cy="11.5" r="0.23" fill="#000000" shape-rendering="geometricPrecision"/>
+  </g>
+</svg>

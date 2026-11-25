@@ -1,0 +1,74 @@
+# Third-Party Software
+
+E64 V1 is derived from BMC64 5.2.6 and incorporates software and other materials from third-party projects. Third-party components remain subject to their respective copyright and license terms.
+
+The original copyright, license, and attribution notices supplied with these components are retained with their source where applicable.
+
+## VICE
+
+BMC64 incorporates source code from the [VICE project](https://vice-emu.sourceforge.io/), version 3.3.
+
+The original VICE 3.3 source archive is available from [SourceForge](https://sourceforge.net/projects/vice-emu/files/releases/vice-3.3.tar.gz/download).
+
+See [`third_party/vice-3.3/`](../third_party/vice-3.3/) for the source incorporated into BMC64 and its accompanying copyright and license information.
+
+## circle-stdlib
+
+BMC64 uses the [circle-stdlib project](https://github.com/smuehlst/circle-stdlib), v21.
+
+See [`third_party/circle-stdlib/`](https://github.com/smuehlst/circle-stdlib/tree/v21) for the version used by BMC64 and its accompanying copyright and license information.
+
+## Plus4Emu
+
+BMC64 incorporates source code from the [Plus4Emu project](https://github.com/istvan-v/plus4emu).
+
+See [`third_party/plus4emu/`](../third_party/plus4emu/) for the source incorporated into BMC64 and its accompanying copyright and license information.
+
+## zlib
+
+BMC64 incorporates source code from [zlib](https://github.com/madler/zlib), v1.3.2.
+
+See [`third_party/zlib/`](../third_party/zlib/) for the source incorporated into BMC64 and its accompanying copyright and license information.
+
+## Other Third-Party Components
+
+Additional third-party components and supporting materials may be present in the BMC64 source tree. Where such material is accompanied by its own copyright, license, or attribution notices, those notices and terms continue to apply.
+
+
+## Raspberry Pi Boot Firmware
+
+E64 uses Raspberry Pi boot firmware from the official Raspberry Pi
+firmware repository.
+
+- Repository: https://github.com/raspberrypi/firmware
+- Verified revision: `b76effded7afe5ed92070ff169e0109a8487fb82`
+- Original files: `bootcode.bin`, `start.elf`, and `fixup.dat`
+- License: `licenses/Raspberry-Pi-LICENCE.broadcom`
+- SHA256 records: `licenses/RASPBERRY-PI-BOOT-SHA256SUMS`
+
+All three original boot firmware files were verified byte-for-byte
+against this upstream revision.
+
+## Wi-Fi Device Firmware
+
+The Wi-Fi device firmware is loaded separately from the SD card
+firmware directory and is subject to its respective vendor licenses.
+
+Upstream repository:
+https://github.com/RPi-Distro/firmware-nonfree
+
+Verified revision:
+`c9d3ae6584ab79d19a4f94ccf701e888f9f87a53`
+
+The upstream copyright document identifies Cypress licensing for the
+43430 and 43455 firmware sets and Synaptics licensing for the 43436,
+43436S and 43456 sets. Consult the complete upstream copyright document
+for the applicable terms.
+
+All 14 supplied Wi-Fi firmware and supporting data files were verified
+byte-for-byte against their pinned upstream originals.
+
+- Copyright and license notices: `licenses/WLAN-COPYRIGHT.txt`
+- SHA256 records: `licenses/WLAN-SHA256SUMS`
+
+The vendor firmware is not relicensed under the E64 software license.

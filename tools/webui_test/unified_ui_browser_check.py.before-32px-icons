@@ -1,0 +1,281 @@
+#!/usr/bin/env python3
+"""Real Firefox UI checks + screenshots using production modules and an in-memory API.
+Normal Devuan terminal: python3 tools/webui_test/unified_ui_browser_check.py
+No SD/device/filesystem API writes: only build/ logs/profiles/screenshots.
+"""
+from pathlib import Path
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+from threading import Thread, Event
+import argparse,json,subprocess,urllib.parse,datetime
+ROOT=Path(__file__).resolve().parents[2];ASSETS=ROOT/'src/webui/assets';OUT=ROOT/'build/unified-web-ui-firefox'/datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--screen','--topic',default='all',choices=['all','dashboard','files','configs','instructions','hotkeys','roms','drives','ieee488','sid','mouse','navigation','new-folder','commands','editor','confirmation','destination','about']);parser.add_argument("--desktop-only",action="store_true",help="Only release desktop viewports");args=parser.parse_args();OUT.mkdir(parents=True,exist_ok=True)
+SCRIPT=r'''
+import {initAbout} from '/js/about.js';
+import {initDashboard,startStatusPolling,refreshVolumes} from '/js/dashboard.js';
+import {showInstructions,hideInstructions,updateHotkeys} from '/js/instructions.js';
+import {confirmE64,promptE64} from '/js/dialog.js';
+import {fileIconType} from '/js/file_icons.js';
+import {initFiles,loadDir,selectFilesVolume} from '/js/files.js';
+import {initConfigs,loadConfigs} from '/js/configs.js';
+import {initEditor,openEditor} from '/js/editor.js';
+const results=[];const check=(name,pass)=>{results.push({name,pass:!!pass});return !!pass;};
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+async function waitFor(fn){for(let n=0;n<120;n++){if(fn())return;await pause(20);}throw Error('Timed out waiting for UI');}
+const box=e=>e.getBoundingClientRect();
+const buttons=e=>[...e.querySelectorAll('button')];
+function header(dialog){const h=dialog.querySelector('.e64-popup-header'),t=h?.querySelector('h2,h3'),b=h?.querySelector('button');check('header exists',!!h&&!!t&&!!b);const tr=box(t),br=box(b);check('title and Close vertically centered',Math.abs(tr.top+tr.height/2-br.top-br.height/2)<2);check('title and Close do not overlap',tr.right<=br.left+1);check('shared 4px orange header divider',getComputedStyle(h).borderBottomWidth==='4px'&&getComputedStyle(h).borderBottomColor==='rgb(221, 136, 85)');check('near-black dialog panel',getComputedStyle(dialog).backgroundColor==='rgb(0, 0, 0)');}
+function view(name){for(const item of document.querySelectorAll('.sidebar > .nav .nav-item'))item.classList.toggle('active',item.getAttribute('href')==='#/'+name);for(const n of ['dashboard','files','configs','instructions'])document.getElementById('view-'+n).hidden=n!==name;document.getElementById('fb-drop').hidden=name!=='files';}
+const state=async()=>await(await fetch('/__state')).json();
+function folder(){document.getElementById('fb-mkdir').focus();document.getElementById('fb-mkdir').click();return document.querySelector('dialog.e64-dialog[open]');}
+const cancel=async d=>{const closed=new Promise(r=>d.addEventListener('close',r,{once:true}));buttons(d).find(b=>b.textContent==='Cancel').click();await closed;};
+try{
+ initAbout();initFiles();initConfigs();initEditor();initDashboard();selectFilesVolume('SD');await loadDir('/');await loadConfigs();startStatusPolling();await waitFor(()=>document.getElementById('sys-state').textContent==='System Online');await refreshVolumes();
+ const headingDimensions=[];
+ for(const page of ['dashboard','files','configs','instructions']){
+  view(page);const section=document.getElementById('view-'+page),header=section.querySelector('.page-title-box'),title=header.querySelector('h1'),sidebar=document.querySelector('.sidebar');
+  check('one separate title box '+page,section.querySelectorAll('.page-title-box').length===1&&section.firstElementChild===header);
+  check('page header icon '+page,!!title.querySelector('.page-icon'));
+  check('full-width page header '+page,Math.abs(box(header).width-box(section).width)<1&&Math.abs(box(header).height-56)<1);
+  headingDimensions.push(getComputedStyle(header).padding+'|'+getComputedStyle(header).borderRadius+'|'+getComputedStyle(title).fontSize);check('shared header surface and border '+page,getComputedStyle(header).backgroundColor==='rgb(0, 0, 0)'&&getComputedStyle(header).borderColor==='rgb(68, 68, 68)');
+  for(const button of section.querySelectorAll('.btn-primary')){const colors=getComputedStyle(button);check('flat orange primary action '+page,colors.backgroundColor==='rgb(221, 136, 85)'&&colors.color==='rgb(0, 0, 0)'&&colors.backgroundImage==='none');}
+  const selected=document.querySelector('.sidebar > .nav .nav-item.active');check('warm flat selected navigation '+page,!!selected&&getComputedStyle(selected).backgroundColor==='rgb(102, 68, 0)'&&getComputedStyle(selected).color==='rgb(255, 255, 255)'&&getComputedStyle(selected).backgroundImage==='none');
+  check('Commodore green page title '+page,getComputedStyle(title).color==='rgb(0, 204, 85)');
+  check('no page horizontal clipping '+page,document.documentElement.scrollWidth<=innerWidth+1);
+  if(innerWidth>820&&innerHeight>=900){check('sidebar fits without vertical scroll '+page,sidebar.scrollHeight<=sidebar.clientHeight+1);check('comfortable compact navigation '+page,[...sidebar.querySelectorAll(':scope > .nav .nav-item')].every(e=>box(e).height===42));const controls=sidebar.querySelector('.sidebar-bottom'),prior=page==='files'?document.getElementById('fb-drop'):sidebar.querySelector(':scope > .nav');check('room for one future sidebar button '+page,box(controls).top-box(prior).bottom>=42);}
+  const bottomGroup=sidebar.querySelector('.sidebar-bottom'),power=bottomGroup.querySelector('.nav-bottom'),reboot=document.getElementById('nav-reboot'),shutdown=document.getElementById('nav-shutdown'),about=document.getElementById('about-e64-button');
+  check('whole sidebar group reserves 32px below About '+page,getComputedStyle(bottomGroup).marginBottom==='32px');
+  check('power container has no joined outer border '+page,getComputedStyle(power).borderTopWidth==='0px');
+  for(const b of [reboot,shutdown]){check('power button own border and corners '+page,getComputedStyle(b).borderTopWidth==='1px'&&parseFloat(getComputedStyle(b).borderRadius)>=8);check('power button readable bounds '+page,b.scrollWidth<=b.clientWidth+1&&box(b).left>=box(power).left-1&&box(b).right<=box(power).right+1);}
+  const rb=box(reboot),sb=box(shutdown);check('separate power buttons have a visible gap '+page,Math.abs(rb.top-sb.top)<1?sb.left-rb.right>=7:sb.top-rb.bottom>=7);
+  if(box(power).width>=192)check('power buttons side by side when space permits '+page,Math.abs(rb.top-sb.top)<1);
+  if(innerWidth>820)check('About clears bottom link-preview area '+page,box(sidebar).bottom-box(about).bottom>=32);
+  if(page==='configs'){const toolbar=document.querySelector('.pf-head'),refresh=document.getElementById('pf-refresh');check('Configs Refresh right aligned',Math.abs(box(toolbar).right-box(refresh).right)<1);check('Configs has no visible count',!/^\d+ (?:Configs|legacy entries)\.$/.test(document.getElementById('pf-status').textContent));}
+  if(page==='files'&&innerWidth>820)check('compact file drop remains visible',!document.getElementById('fb-drop').hidden&&box(document.getElementById('fb-drop')).height>=80&&box(document.getElementById('fb-drop')).height<=82);
+  if(page==='files'){
+   const scroll=document.querySelector('#view-files .fb-scroll'),table=scroll.querySelector('.fb-table'),style=getComputedStyle(scroll),head=table.tHead.rows[0],rows=[...table.tBodies[0].rows];
+   const icons=[...document.querySelectorAll('#fb-rows .file-type-icon')];check('all icon categories rendered',new Set(icons.map(i=>i.dataset.fileType)).size===9);
+   await Promise.all(icons.map(i=>i.decode()));
+   for(const icon of icons){const r=box(icon),row=icon.closest('tr'),name=row.querySelector('.nm');check('16px loaded file icon',r.width===16&&r.height===16&&icon.complete&&icon.naturalWidth===16);check('metadata-derived file icon',icon.dataset.fileType===fileIconType(name.textContent,icon.classList.contains('dir')));check('icon/name alignment and clearance',Math.abs(r.top+r.height/2-(box(name).top+box(name).height/2))<1&&r.right+8<=box(name).left);}
+   check('native visible scrollbar width',style.scrollbarWidth==='auto'&&style.scrollbarGutter==='stable');
+   check('contrasting file scrollbar colors',style.scrollbarColor.includes('rgb(187, 187, 187)')&&style.scrollbarColor.includes('rgb(31, 31, 31)'));
+   const clearance=box(scroll).left+scroll.clientLeft+scroll.clientWidth-box(table).right;
+   check('12px clearance before native scrollbar',Math.abs(clearance-12)<1&&style.paddingInlineEnd==='12px');
+   check('long listing actually scrolls internally',scroll.scrollHeight>scroll.clientHeight&&style.overflowY==='auto');
+   for(const row of rows){for(let col=0;col<4;col++){const header=head.cells[col],cell=row.cells[col];if(getComputedStyle(header).display==='none'){check('responsive metadata hidden consistently',getComputedStyle(cell).display==='none');continue;}check('shared file header/body columns',Math.abs(box(header).left-box(cell).left)<1&&Math.abs(box(header).width-box(cell).width)<1);check('file column alignment',getComputedStyle(cell).textAlign===(col===1||col===3?'right':'left')&&getComputedStyle(header).textAlign===getComputedStyle(cell).textAlign);}
+    const action=row.querySelector('.act-btn');if(action){const cell=row.cells[3];check('Actions right aligned and not clipped',Math.abs(box(action).right-(box(cell).right-parseFloat(getComputedStyle(cell).paddingRight)))<1&&box(action).left>=box(cell).left&&box(action).right<=box(table).right);}
+    const name=row.querySelector('.nm');if(name){const range=document.createRange();range.selectNodeContents(name);check('long filename text stays in Name column',[...range.getClientRects()].every(rect=>rect.right<=box(row.cells[0]).right+1&&rect.left>=box(row.cells[0]).left-1));}
+    check('row dividers stop before scrollbar clearance',Math.abs(box(row.cells[3]).right-box(table).right)<1&&box(row.cells[3]).right<=box(scroll).left+scroll.clientWidth-11);
+   }
+   const titleTop=box(header).top,panelBottom=box(document.getElementById('fb-card')).bottom;
+   scroll.scrollTop=scroll.scrollHeight;check('scrolling preserves title and panel geometry',Math.abs(box(header).top-titleTop)<1&&Math.abs(box(document.getElementById('fb-card')).bottom-panelBottom)<1);scroll.scrollTop=0;
+  }
+
+  if(page==='files'&&innerWidth>820&&innerHeight>=900){
+   const panel=box(document.getElementById('fb-card')),tagline=box(document.querySelector('.dashboard-signature')),above=tagline.top-panel.bottom,below=innerHeight-tagline.bottom,listing=document.querySelector('#view-files .fb-scroll');
+   check('File Manager gaps around tagline balanced',above>=0&&below>=0&&Math.abs(above-below)<1);
+   check('File Manager panel never overlaps tagline',panel.bottom<=tagline.top);
+   check('File Manager title position preserved',Math.abs(box(header).top-20)<1&&Math.abs(panel.top-(box(header).bottom+14))<1);
+   check('File listing retains its scrolling area',getComputedStyle(listing).overflowY==='auto'&&listing.clientHeight>0&&box(listing).bottom<=panel.bottom);
+  }
+
+ }
+ check('page header styles consistent',new Set(headingDimensions).size===1);
+ if(innerWidth>820){const sidebar=document.querySelector('.sidebar'),aboutButton=document.getElementById('about-e64-button');view('files');sidebar.style.height='480px';check('short sidebar preserves normal scrolling',getComputedStyle(sidebar).overflowY==='auto'&&sidebar.scrollHeight>sidebar.clientHeight);sidebar.scrollTop=sidebar.scrollHeight;check('short sidebar About remains reachable',box(aboutButton).bottom<=box(sidebar).bottom&&box(aboutButton).top>=box(sidebar).top);sidebar.style.height='';sidebar.scrollTop=0;}
+ check('sidebar branding version removed',!document.getElementById('sidebar-version'));
+ check('sidebar stays very dark',getComputedStyle(document.querySelector('.sidebar')).backgroundColor==='rgb(0, 0, 0)');
+ view('files');const drop=document.getElementById('fb-drop'),drag=new DataTransfer();drag.items.add(new File(['fixture'],'drop-check.d64'));drop.dispatchEvent(new DragEvent('dragover',{dataTransfer:drag,bubbles:true,cancelable:true}));check('File Drop visual feedback',drop.classList.contains('over'));drop.dispatchEvent(new DragEvent('dragleave',{dataTransfer:drag,relatedTarget:document.body,bubbles:true}));check('File Drop feedback clears',!drop.classList.contains('over'));check('File Drop destination preserved',document.getElementById('fb-drop-dest').textContent==='/');
+ view('configs');
+ check('Config summary removed',!document.getElementById('pf-summary'));
+ for(const card of document.querySelectorAll('.pf-card')){
+  check('no Power-on badge',![...card.querySelectorAll('.pf-badge')].some(e=>e.textContent==='Power-on'));
+  check('no redundant machine/technical badge',!card.querySelector('.pf-chip,.pf-detail'));
+  const name=card.querySelector('.pf-name'),standard=card.querySelector('.video-standard');
+  const footer=card.querySelector('.pf-card-footer'),top=card.querySelector('.pf-top'),start=card.querySelector('.pf-start'),actions=footer.querySelector('.pf-more');
+  check('Config name has full row width',Math.abs(box(name).width-box(top).width)<1&&!top.querySelector('.pf-badge'));
+  check('Config name/start/footer vertical order',box(name).bottom<=box(start).top&&box(start).bottom<=box(footer).top);
+  if(standard){check('video badge at lower left',footer.firstElementChild===standard&&Math.abs(box(standard).left-box(footer).left)<1&&box(name).bottom<=box(standard).top);check('video badge color',getComputedStyle(standard).color===(standard.textContent==='NTSC'?'rgb(0, 136, 255)':'rgb(204, 68, 204)'));const statuses=footer.querySelector('.pf-badges');if(statuses)check('status immediately right of video badge',box(statuses).left>=box(standard).right&&box(statuses).left-box(standard).right<=7);}
+  if(actions)check('existing Actions stays at footer right',Math.abs(box(actions).right-box(footer).right)<1);
+  if(name.querySelector('.pf-name-text')?.textContent==='Default'){check('factory names fit one line when space permits',box(name).height<=parseFloat(getComputedStyle(name).lineHeight)+1);check('no invented factory actions',!actions);}
+
+  check('Config actions not clipped',card.scrollWidth<=card.clientWidth+1);
+ }
+ for(const grid of document.querySelectorAll('.pf-grid')){const cards=[...grid.querySelectorAll('.pf-card')];if(cards.length)check('consistent Config card heights',cards.every(card=>Math.abs(box(card).height-box(cards[0]).height)<1));}
+ const unknown=[...document.querySelectorAll('.pf-card')].find(c=>c.querySelector('.pf-name-text')?.textContent==='NTSC in name only');check('standard never guessed from name',unknown&&!unknown.querySelector('.video-standard'));
+ view('dashboard');
+ const aboutButton=document.getElementById('about-e64-button'),about=document.getElementById('about-e64-popup'),pane=aboutButton.parentElement,info=aboutButton.previousElementSibling;
+ check('single About button directly below sidebar System Information',document.querySelectorAll('#about-e64-button').length===1&&aboutButton.closest('.sidebar')&&info.classList.contains('sys-card'));
+ for(const page of ['dashboard','files','configs','instructions']){
+  view(page);const sidebar=aboutButton.closest('.sidebar');sidebar.scrollTop=0;
+  const visible=()=>{const b=box(aboutButton),s=box(sidebar);return b.width>0&&b.height>0&&b.left>=s.left&&b.right<=s.right&&b.top>=Math.max(0,s.top)&&b.bottom<=Math.min(innerHeight,s.bottom);};
+  if(innerWidth>820&&innerHeight>=780)check('About visible at normal desktop height '+page,visible());
+  if(!visible())aboutButton.scrollIntoView({block:'nearest'});
+  check('About accessible from '+page,visible());
+  aboutButton.focus();aboutButton.click();check('About opens from '+page,about.open);
+  let closed=new Promise(r=>about.addEventListener('close',r,{once:true}));about.querySelector('button').click();await closed;check('About Close focus from '+page,document.activeElement===aboutButton);
+  aboutButton.click();closed=new Promise(r=>about.addEventListener('close',r,{once:true}));about.dispatchEvent(new Event('cancel',{cancelable:true}));await closed;check('About Escape focus from '+page,document.activeElement===aboutButton&&!about.open);
+ }
+ view('dashboard');
+ aboutButton.click();header(about);check('About opens',about.open);
+ check('exact two-line approved statement',about.querySelector('.about-e64-statement').innerHTML==='Built out of a love for the Commodore 64,<br>and with thanks to those who keep it alive.');
+ for(const p of about.querySelectorAll('.about-e64-content p'))check('About content centered',getComputedStyle(p).textAlign==='center');
+ const title=box(document.getElementById('about-e64-title'));check('About title centered',Math.abs(title.left+title.width/2-(box(about).left+box(about).width/2))<1);
+ check('About fits viewport',box(about).left>=0&&box(about).right<=innerWidth&&about.scrollWidth<=about.clientWidth);
+ let closed=new Promise(r=>about.addEventListener('close',r,{once:true}));about.querySelector('button').click();await closed;check('About Close restores focus',!about.open&&document.activeElement===aboutButton);
+ aboutButton.click();closed=new Promise(r=>about.addEventListener('close',r,{once:true}));about.dispatchEvent(new Event('cancel',{cancelable:true}));await closed;check('About Escape restores focus',!about.open&&document.activeElement===aboutButton);
+ view('instructions');showInstructions();
+ const links=[...document.querySelectorAll('#instructions-index a')];
+ check('six vertical Instruction links',links.length===6&&links.every((a,i)=>!i||box(a).top>=box(links[i-1]).bottom+8));
+ check('Instruction link color/font',links.every(a=>getComputedStyle(a).color==='rgb(0, 136, 255)'&&getComputedStyle(a).fontSize===getComputedStyle(document.querySelector('#view-instructions .page-title-box h1')).fontSize&&+getComputedStyle(a).fontWeight>=600));
+ check('Instruction destinations preserved',links.map(a=>a.getAttribute('href')).join('|')==='#/instructions/drives|#/instructions/roms|#/instructions/ieee488|#/instructions/sid|#/instructions/mouse|#/instructions/hotkeys');
+ for(const topic of ['drives','roms','ieee488','sid','mouse','hotkeys']){showInstructions(topic);header(document.getElementById('instructions-popup'));}
+ showInstructions('sid');const approvedRule=getComputedStyle(document.querySelector('#instructions-content hr'));
+ const ruleStyle={borderTopWidth:approvedRule.borderTopWidth,borderTopColor:approvedRule.borderTopColor,marginTop:approvedRule.marginTop,marginBottom:approvedRule.marginBottom};
+ for(const [topic,count] of [['drives',3],['roms',1],['ieee488',2],['mouse',1]]){showInstructions(topic);const article=document.getElementById('instructions-content'),rules=[...article.querySelectorAll('hr')];check('major section divider count '+topic,rules.length===count);check('no unnecessary bottom divider '+topic,article.lastElementChild.tagName!=='HR');for(const hr of rules){const style=getComputedStyle(hr);check('section divider matches Dual SID '+topic,Object.entries(ruleStyle).every(([name,value])=>style[name]===value)&&style.borderTopWidth==='1px'&&style.borderTopColor==='rgb(221, 136, 85)'&&Math.abs(box(hr).left-box(article).left)<1&&Math.abs(box(hr).right-box(article).right)<1);}}
+
+ const popup=document.getElementById('instructions-popup');showInstructions('hotkeys');
+ updateHotkeys(['Warp','None','Swap Joysticks','Menu','Reset','Status','Snapshot','Menu'],'config-a');updateHotkeys(['Changed','None','Swap Joysticks','Menu','Reset','Status','Snapshot','Menu'],'config-b');check('live E64 mappings preserved',document.getElementById('e64-action-0').textContent==='Changed');
+ const table=document.getElementById('live-hotkeys'),scroll=table.parentElement;
+ const rows=[...table.querySelectorAll('tbody tr')];check('five columns and four pairs',rows.length===4&&rows.every(r=>r.cells.length===5));
+ const intersects=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+ const textRects=e=>{const walker=document.createTreeWalker(e,NodeFilter.SHOW_TEXT),rects=[];let n;while(n=walker.nextNode()){if(!n.textContent.trim())continue;const range=document.createRange();range.selectNodeContents(n);rects.push(...range.getClientRects());}return rects;};
+ function hotkeyGeometry(){
+  if(table.offsetWidth<=scroll.clientWidth-20)check('complete table centered in popup',Math.abs(box(table).left+box(table).width/2-(box(popup).left+box(popup).width/2))<1);
+  else check('mobile table uses horizontal scroll without shrinking',scroll.scrollWidth>scroll.clientWidth&&table.offsetWidth>=602&&getComputedStyle(scroll).overflowX==='auto'&&scroll.tabIndex===0);
+  for(const row of rows){
+   const t=box(table),r=box(row),key=row.querySelector('.c64-keycap'),k=box(key),left=row.querySelector('.hotkey-divider-left'),right=row.querySelector('.hotkey-divider-right'),l=box(left),q=box(right);
+   check('dividers flush with table edges and symmetric',Math.abs(r.left-l.left)<0.1&&Math.abs(q.right-r.right)<0.1&&l.left>=r.left-0.1&&q.right<=r.right+0.1&&Math.abs(r.left-l.left-(q.right-r.right))<0.1);
+   check('neither divider protrudes beyond actual table',Math.abs(t.left-l.left)<0.1&&Math.abs(q.right-t.right)<0.1&&l.left>=t.left-0.1&&q.right<=t.right+0.1);
+   check('dividers never cross F keycap',l.right<=k.left-15&&q.left>=k.right+15&&!intersects(l,k)&&!intersects(q,k));
+   check('16px symmetric keycap clearance',Math.abs(k.left-l.right-16)<1&&Math.abs(q.left-k.right-16)<1&&Math.abs(k.left-l.right-(q.left-k.right))<1);
+   check('matching thin orange divider segments',l.height===1&&q.height===1&&getComputedStyle(left).backgroundColor==='rgb(221, 136, 85)'&&getComputedStyle(left).backgroundColor===getComputedStyle(right).backgroundColor);
+   check('F keycap stays inside physical column',k.left>=box(row.cells[2]).left&&k.right<=box(row.cells[2]).right&&k.width===96&&k.height===62);
+   for(const col of [1,3])for(const e of row.cells[col].querySelectorAll('.hotkey-cell')){
+    const rects=textRects(e),c=box(e);
+    check('18px heavier descriptions',getComputedStyle(e).fontSize==='18px'&&+getComputedStyle(e).fontWeight>=600);
+    check('no F-keycap overlaps adjacent action text',rects.length>0&&rects.every(t=>!intersects(t,k)));
+    check('no action text is clipped',e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1&&rects.every(t=>t.left>=c.left-1&&t.right<=c.right+1&&t.top>=c.top-1&&t.bottom<=c.bottom+1));
+    if(col===3)check('JiffyDOS labels stay on one readable line',rects.length===1);
+   }
+  }
+ }
+ check('compact table dimensions',table.offsetWidth===602&&rows.every(row=>Math.abs(box(row).height-109)<1));
+ if(innerWidth===1280)check('compact desktop popup width',Math.abs(box(popup).width-750)<1);
+ if(innerWidth===1280&&innerHeight>=900){check('desktop Hotkeys height 680px',Math.abs(box(popup).height-680)<1);check('desktop Hotkeys has no internal vertical scrolling',popup.scrollHeight<=popup.clientHeight+1&&scroll.scrollHeight<=scroll.clientHeight+1&&popup.querySelector('article').scrollHeight<=popup.querySelector('article').clientHeight+1);check('desktop Hotkeys fits viewport',box(popup).top>=0&&box(popup).bottom<=innerHeight);}
+ hotkeyGeometry();
+ // Exercise real running-Config strings, including the longest native action names.
+ updateHotkeys(['Virtual Keyboard','40/80 Column Key','Status Toggle','Cycle Display','Custom Key 6','Swap Ports','Hard Reset','Flush Disks'],'long-actions');hotkeyGeometry();
+ if(scroll.scrollWidth>scroll.clientWidth){scroll.focus();check('mobile reference accepts keyboard focus',document.activeElement===scroll);scroll.scrollLeft=scroll.scrollWidth;hotkeyGeometry();check('mobile can reach far-right SHIFT caps',box(rows[0].cells[4]).right<=box(scroll).right+1);scroll.scrollLeft=0;}
+ check('23px Commodore caps',[...table.querySelectorAll('.commodore-keycap')].every(e=>box(e).width===23&&box(e).height===23));check('39x23 CTRL SHIFT caps',[...table.querySelectorAll('.modifier-keycap:not(.commodore-keycap)')].every(e=>box(e).width===39&&box(e).height===23));
+ const th=[...table.querySelectorAll('thead th')],first=rows[0];for(let i=0;i<3;i++){const from=i===0?0:i===1?2:3,to=i===0?1:i===1?2:4;const center=(box(first.cells[from]).left+box(first.cells[to]).right)/2;check('column heading centered',Math.abs(box(th[i]).left+box(th[i]).width/2-center)<1);}
+ check('boot note below Commands',document.querySelector('.config-restore-note').previousElementSibling.classList.contains('function-reference-actions'));
+ document.querySelector('.function-reference-actions button').click();header(document.getElementById('jiffydos-commands-popup'));check('Commands popup preserved',document.getElementById('jiffydos-commands-popup').open);document.getElementById('jiffydos-commands-popup').close();
+ showInstructions('hotkeys');const navigationButton=buttons(document.querySelector('.function-reference-actions')).find(b=>b.textContent==='Menu Navigation Keys');check('navigation help button exists',!!navigationButton);navigationButton.click();check('navigation button destination',location.hash==='#/instructions/navigation');showInstructions('navigation');header(document.getElementById('instructions-popup'));const navigationHelp=document.getElementById('instructions-content').textContent;for(const text of ['Cursor keys','RETURN (Enter)','Left-arrow / back key','Extended Menu Navigation','HOME','Dedicated C64 ↑ key','not cursor-up','Attach connects an image file to the emulated device.','Remove disconnects the image without deleting the file.'])check('navigation help '+text,navigationHelp.includes(text));check('six primary instruction topics retained',document.querySelectorAll('#instructions-index a').length===6);
+ showInstructions('drives');check('Drive Reference footer links removed',!document.querySelector('#instructions-content a[href="#/instructions/ieee488"]')&&!document.querySelector('#instructions-content a[href="#/instructions/roms"]'));check('Drive Reference descriptions/tables preserved',document.querySelectorAll('.drive-reference').length===2);
+ showInstructions('roms');const tables=[...document.querySelectorAll('.rom-reference')];check('standard ROM has 3 columns',tables[0].rows[0].cells.length===3);check('IEEE ROM has 2 columns',tables[1].rows[0].cells.length===2&&[...tables[1].rows].every(r=>r.cells.length===2));check('unsupported JiffyDOS cells empty',[...tables[0].tBodies[0].rows].filter(r=>r.cells[2].textContent==='').length===5);check('all IEEE drives retained',tables[1].tBodies[0].rows.length===7);check('ROM notes and duplicate separator removed',!document.querySelector('.rom-notes')&&document.querySelectorAll('#instructions-content hr').length===1&&document.querySelector('#instructions-content').lastElementChild.tagName!=='HR');check('normal thin IEEE border',[...tables[1].querySelectorAll('td')].every(e=>getComputedStyle(e).borderBottomWidth==='1px'));
+ for(const col of [0,1]){check('ROM column starts aligned across sections',Math.abs(box(tables[0].rows[0].cells[col]).left-box(tables[1].rows[0].cells[col]).left)<1);for(const table of tables)for(const row of table.tBodies[0].rows)check('ROM body column aligns with header',Math.abs(box(row.cells[col]).left-box(table.rows[0].cells[col]).left)<1);}
+ check('ROM table row spacing consistent',[...tables[0].tBodies[0].rows,...tables[1].tBodies[0].rows].every(row=>Math.abs(box(row).height-box(tables[0].tBodies[0].rows[0]).height)<1));
+ for(const h of document.querySelectorAll('.drive-section-heading'))check('ROM section description on one line',getComputedStyle(h).whiteSpace==='nowrap'&&!!h.querySelector('.drive-section-description'));
+ showInstructions('mouse');check('balanced mouse note',document.querySelector('#instructions-content .deliberate-lines').innerHTML==='Note: The 1351 protocol does not expose<br>the scroll wheel or middle button.');
+ showInstructions('ieee488');check('IEEE redundant footer removed',!document.querySelector('#instructions-content a[href="#/instructions/roms"]')&&document.getElementById('instructions-content').lastElementChild.classList.contains('drive-number-group'));check('main ROM navigation preserved',!!document.querySelector('#instructions-index a[href="#/instructions/roms"]'));check('file paths remain intact',[...document.querySelectorAll('#instructions-content code')].every(e=>getComputedStyle(e).whiteSpace==='nowrap'));check('drive numbering readable groups',document.querySelector('.drive-number-group').textContent.includes('First mechanism: Drive 8 or 10.'));
+ const parentClosed=new Promise(r=>popup.addEventListener('close',r,{once:true}));hideInstructions();await parentClosed;
+ view('files');let before=(await state()).writes.length;let d=folder();header(d);check('New Folder input auto focus',document.activeElement===d.querySelector('input'));check('no IP address',!d.textContent.match(/\d+\.\d+\.\d+\.\d+/));await cancel(d);check('Cancel restores focus and writes nothing',document.activeElement===document.getElementById('fb-mkdir')&&(await state()).writes.length===before);
+ d=folder();d.querySelector('input').value='bad/name';buttons(d).find(b=>b.textContent==='Create').click();check('invalid folder stays open',d.open&&d.querySelector('input').getAttribute('aria-invalid')==='true');await cancel(d);check('invalid folder creates nothing',(await state()).writes.length===before);
+ d=folder();const esc=new Promise(r=>d.addEventListener('close',r,{once:true}));d.dispatchEvent(new Event('cancel',{cancelable:true}));await esc;check('Escape cancellation writes nothing',(await state()).writes.length===before);
+ d=folder();d.querySelector('input').value='created';buttons(d).find(b=>b.textContent==='Create').click();await waitFor(()=>!d.isConnected&&document.getElementById('fb-status').textContent.startsWith('Created folder'));check('Create uses current volume/path',(await state()).writes.at(-1).path==='/created');
+ d=folder();d.querySelector('input').value='entered';d.querySelector('input').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));await waitFor(()=>!d.isConnected&&document.getElementById('fb-status').textContent==='Created folder entered.');check('Enter creates folder',(await state()).writes.at(-1).path==='/entered');
+ document.getElementById('fb-mkdir').focus();const confirm=confirmE64('Reboot E64?\nUnsaved changes will be lost.','Reboot');d=document.querySelector('dialog.e64-dialog[open]');header(d);await cancel(d);check('confirmation Cancel unchanged',await confirm===false);
+ const edit=openEditor({vol:'SD',path:'/notes.txt',name:'notes.txt'});await waitFor(()=>!document.getElementById('editor').hidden);header(document.querySelector('.ed-dialog'));document.getElementById('ed-close').click();await edit;
+ check('page color',getComputedStyle(document.body).backgroundColor==='rgb(20, 20, 20)');
+ for(const e of document.querySelectorAll('.card,.pf-card,.sys-card,.page-title-box'))check('shared near-black panel color',getComputedStyle(e).backgroundColor==='rgb(0, 0, 0)');
+}catch(error){results.push({name:'validation exception',pass:false,error:String(error)});}
+// Always prepare the requested screen, even after a validation failure.
+const screen=new URL(location.href).searchParams.get('screen');let captureReady=false;
+try{
+ await Promise.all([...document.querySelectorAll('dialog[open]')].map(d=>new Promise(resolve=>{d.addEventListener('close',resolve,{once:true});d.close();})));
+ if(!document.getElementById('editor').hidden)document.getElementById('ed-close').click();
+ await pause(0);await waitFor(()=>!document.querySelector('dialog[open]')&&document.getElementById('editor').hidden);
+ document.getElementById('pf-restart').hidden=true;
+ const help=['hotkeys','roms','drives','ieee488','sid','mouse','navigation'];
+ const expectedView=help.includes(screen)||screen==='commands'?'instructions':['new-folder','editor','destination'].includes(screen)?'files':screen==='about'||screen==='confirmation'?'dashboard':screen;
+ view(expectedView);
+ if(help.includes(screen))showInstructions(screen);
+ else if(screen==='instructions')showInstructions();
+ else if(screen==='about')document.getElementById('about-e64-button').click();
+ else if(screen==='new-folder')folder();
+ else if(screen==='commands'){showInstructions('hotkeys');document.querySelector('.function-reference-actions button').click();}
+ else if(screen==='confirmation')confirmE64('Reboot E64?\nUnsaved changes will be lost.','Reboot');
+ else if(screen==='editor'){openEditor({vol:'SD',path:'/notes.txt',name:'notes.txt'});await waitFor(()=>!document.getElementById('editor').hidden&&document.getElementById('ed-hint').textContent!=='Loading…');}
+ else if(screen==='destination'){const row=[...document.querySelectorAll('#fb-rows tr')].find(r=>r.textContent.includes('demo.d64'));row.querySelector('.act-btn').click();[...document.querySelectorAll('.act-item')].find(b=>b.textContent==='Copy To >').click();await waitFor(()=>document.querySelector('.destination-dialog[open]'));}
+ await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ const visible=[...document.querySelectorAll('section.view')].filter(e=>!e.hidden).map(e=>e.id),dialogs=[...document.querySelectorAll('dialog[open]')];
+ const popup=document.getElementById('instructions-popup');
+ const expectedDialogs=screen==='commands'?['instructions-popup','jiffydos-commands-popup']:help.includes(screen)?['instructions-popup']:screen==='about'?['about-e64-popup']:['new-folder','confirmation','destination'].includes(screen)?['dynamic']:[];
+ const actualDialogs=dialogs.map(d=>d.id||'dynamic');
+ const correctOverlay=screen==='editor'?!document.getElementById('editor').hidden&&document.getElementById('ed-title').textContent==='notes.txt':document.getElementById('editor').hidden;
+ const correctTopic=!help.includes(screen)||popup.dataset.topic===screen;
+ captureReady=visible.length===1&&visible[0]==='view-'+expectedView&&actualDialogs.join('|')===expectedDialogs.join('|')&&correctOverlay&&correctTopic;
+ check('requested screenshot view and overlay verified',captureReady);
+ document.documentElement.dataset.captureScreen=captureReady?screen:'UNVERIFIED';
+}catch(error){results.push({name:'screenshot preparation exception',pass:false,error:String(error)});}
+await fetch('/__results',{method:'POST',body:JSON.stringify({screen,capture_ready:captureReady,checks:results})});
+'''
+ready=Event();results=[];capture_state={};writes=[];dirs=set()
+html=(ASSETS/'index.html').read_text().replace('<script type="module" src="/js/app.js"></script>','<script type="module">'+SCRIPT+'</script><img hidden src="/__hold" alt="">')
+class Handler(SimpleHTTPRequestHandler):
+ def __init__(self,*a,**kw):super().__init__(*a,directory=str(ASSETS),**kw)
+ def log_message(self,*a):pass
+ def send_json(self,payload,status=200):
+  data=json.dumps(payload).encode();self.send_response(status);self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(data)
+ def do_GET(self):
+  u=urllib.parse.urlsplit(self.path);q=urllib.parse.parse_qs(u.query)
+  if u.path=='/__hold':
+   ready.wait(45);self.send_response(200);self.send_header('Content-Type','image/svg+xml');self.end_headers();self.wfile.write(b'<svg xmlns="http://www.w3.org/2000/svg"/>');return
+  if u.path=='/__preview':
+   self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.end_headers();self.wfile.write(html.encode());return
+  if u.path=='/__state':return self.send_json({'writes':writes})
+  if u.path=='/api/status':return self.send_json({'machine':'C64','config_id':'browser','config_name':'Browser Check','hostname':'e64','uptime_secs':3723,'ip':'192.0.2.64','net_status':1,'net_text':'Connected','soc_temp_c':43,'throttled':0,'warp':0,'reu':1,'reu_size':512,'ieee488':0,'drives':[1542,0,0,0],'hotkeys':['Warp','Status Toggle','Swap Ports','Menu','Virtual Keyboard','40/80 Column Key','Hard Reset','Flush Disks'],'caps':{'run':[],'basic':''}})
+  if u.path in ['/api/volumes','/api/fs/volumes']:return self.send_json({'volumes':[{'id':'SD','total_kb':1024,'free_kb':512}]})
+  if u.path=='/api/configs/protection':return self.send_json({'ready':True,'protected':['_factory-ntsc','_factory-pal']})
+  if u.path=='/api/configs/deleted':return self.send_json({'ready':True,'deleted':[]})
+  if u.path=='/api/fs/list':
+   path=q.get('path',['/'])[0];entries=[{'name':name,'dir':True} for name in ['browser','pal-fixture','unknown-fixture']] if path=='/configs' else ([{'name':d,'dir':True,'mtime':'2026-11-09T12:34:56'} for d in sorted(dirs)]+[{'name':n,'size':123,'mtime':'2026-11-09T12:34:56'} for n in ['disk.DHD','cart.CRT','tape.T64','program.PRG','state.VSF','chip.ROM','unknown.BIN']]+[{'name':'demo.d64','size':174848,'mtime':'2026-11-09T12:34:56'},{'name':'notes.txt','size':20,'edit':True,'mtime':'2026-11-09T12:34:56'},{'name':'A-very-long-filename-with-no-clipping-'+('long-name-'*10)+'.d64','size':1048576,'mtime':'2026-11-09T12:34:56'}]) if path=='/' else []
+   return self.send_json({'vol':q.get('vol',['SD'])[0],'path':path,'entries':entries})
+  if u.path=='/api/fs/download':
+   path=q.get('path',[''])[0];text={'/configs/browser/config.txt':'name=Browser Check\nmachine=C64/NTSC/HDMI/VICE 768x525 @ 59.827 Hz\n','/configs/pal-fixture/config.txt':'name=PAL Metadata\nmachine=C64/PAL/HDMI/VICE 720x576 @ 50 Hz\n','/configs/unknown-fixture/config.txt':'name=NTSC in name only\nmachine=C64\n','/configs/active.txt':'config=browser\n','/notes.txt':'E64 browser fixture\n'}.get(path,'');self.send_response(200);self.end_headers();self.wfile.write(text.encode());return
+  return super().do_GET()
+ def do_POST(self):
+  u=urllib.parse.urlsplit(self.path);q=urllib.parse.parse_qs(u.query);body=self.rfile.read(int(self.headers.get('Content-Length',0)))
+  if u.path=='/__results':
+   payload=json.loads(body);results.extend(payload['checks']);capture_state.update(payload);ready.set();return self.send_json({'ok':True})
+  if u.path=='/api/fs/mkdir':
+   path=q.get('path',[''])[0];dirs.add(path.lstrip('/'));writes.append({'vol':q.get('vol',[''])[0],'path':path});return self.send_json({'ok':True})
+  return self.send_json({'error':'Unexpected mutation'},400)
+def fallback(reason):
+ records=[];page=OUT/'startup-probe.html';page.write_text('<p>Firefox startup probe only; full UI checks require the normal-terminal localhost harness.</p>')
+ for w,h in ([(1280,1024),(1280,900)] if args.desktop_only else [(1280,1024),(1280,900),(390,780)]):
+  profile=OUT/f'probe-{w}x{h}';profile.mkdir(exist_ok=True)
+  try:
+   run=subprocess.run(['firefox','--headless','--no-remote','--profile',str(profile),'--window-size',f'{w},{h}','--screenshot',str(OUT/f'PROBE-ONLY-{w}x{h}.png'),page.as_uri()],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=30)
+   (OUT/f'probe-{w}x{h}.log').write_text(run.stdout+'\nExit: '+str(run.returncode)+'\n');records.append({'width':w,'height':h,'status':'blocked','reason':reason,'firefox_exit':run.returncode,'ui_checks':[]})
+  except subprocess.TimeoutExpired:records.append({'width':w,'height':h,'status':'blocked','reason':reason+'; Firefox startup timed out','ui_checks':[]})
+ (OUT/'results.json').write_text(json.dumps(records,indent=2)+'\n');print('BLOCKED:',reason);print('Logs:',OUT);return 2
+try:server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+except PermissionError as error:raise SystemExit(fallback(str(error)))
+Thread(target=server.serve_forever,daemon=True).start();records=[]
+try:
+ screens=['dashboard','files','configs','instructions','hotkeys','roms','drives','ieee488','sid','mouse','navigation','new-folder','commands','editor','confirmation','destination','about'] if args.screen=='all' else [args.screen]
+ for w,h in ([(1280,1024),(1280,900)] if args.desktop_only else [(1280,1024),(1280,900),(390,780)]):
+  for screen in screens:
+   ready.clear();results.clear();capture_state.clear();writes.clear();dirs.clear();dirs.update(['demos','ROMs.d64','nested.ROM']+[f'folder-{n:02d}' for n in range(40)]);profile=OUT/f'firefox-{w}x{h}';profile.mkdir(exist_ok=True);shot=OUT/f'{screen}-{w}x{h}.png';temporary=OUT/f'UNVERIFIED-{screen}-{w}x{h}.png'
+   try:
+    run=subprocess.run(['firefox','--headless','--no-remote','--profile',str(profile),'--window-size',f'{w},{h}','--screenshot',str(temporary),f'http://127.0.0.1:{server.server_port}/__preview?screen={screen}'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=60)
+    (OUT/f'{screen}-{w}x{h}.log').write_text(run.stdout)
+    verified=capture_state.get('screen')==screen and capture_state.get('capture_ready') is True
+    if verified and temporary.exists():temporary.rename(shot)
+    passed=run.returncode==0 and verified and bool(results) and all(c['pass'] for c in results) and shot.exists()
+    records.append({'width':w,'height':h,'screen':screen,'status':'passed' if passed else 'failed','exit_code':run.returncode,'capture_ready':verified,'checks':list(results),'screenshot':str(shot) if shot.exists() else None,'unverified_capture':str(temporary) if temporary.exists() else None});print('PASS' if passed else 'FAIL',w,h,screen,flush=True)
+   except subprocess.TimeoutExpired:records.append({'width':w,'height':h,'screen':screen,'status':'blocked','reason':'Firefox timed out'})
+ (OUT/'results.json').write_text(json.dumps(records,indent=2)+'\n')
+finally:server.shutdown();server.server_close()
+print('Screenshots and results:',OUT)
+raise SystemExit(0 if records and all(r['status']=='passed' for r in records) else 1)

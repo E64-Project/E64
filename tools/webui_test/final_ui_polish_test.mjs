@@ -1,0 +1,43 @@
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {showInstructions,updateHotkeys} from "../../src/webui/assets/js/instructions.js";
+const nodes=new Map();
+const node=()=>({dataset:{},children:[],childNodes:[],innerHTML:"",textContent:"",open:false,setAttribute(){},querySelector(){return {addEventListener(){},focus(){}};},addEventListener(){},append(...items){this.children.push(...items);},replaceChildren(){this.children=[];},show(){this.open=true;},close(){this.open=false;}});
+const get=id=>{if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);};
+const previous=globalThis.document;globalThis.document={getElementById:get,createElement:node};
+const page=id=>{get('instructions-content').replaceChildren();showInstructions(id);return get('instructions-content').innerHTML;};
+try {
+ const html=page('hotkeys');
+ const rows=[...html.matchAll(/<tr class="hotkey-pair">([\s\S]*?)<\/tr>/g)];assert.equal(rows.length,4);
+ rows.forEach((row,i)=>{
+  const cells=[...row[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/g)];assert.equal(cells.length,5);
+  assert.ok(cells[0][1].includes('modifier-keycap commodore-keycap'));
+  assert.ok(cells[0][1].includes('<span class="modifier-keycap">CTRL</span>'));
+  assert.ok(cells[4][1].includes('aria-label="Unshifted"></div>'));
+  assert.ok(cells[4][1].includes(`Shift plus F${2*i+1} gives F${2*i+2}`));
+  assert.equal([...cells[4][1].matchAll(/>SHIFT<\/span>/g)].length,1);
+  assert.ok(!/>F[1-8]<\//.test(cells[4][1]));
+ });
+ const children=get('instructions-content').children;
+ assert.equal(children.length,0);
+ assert.ok(!html.includes('config-restore-note'));
+ updateHotkeys(['Live A','Live B'],'running-a');assert.equal(get('e64-action-0').textContent,'Live A');
+ updateHotkeys(['Changed'],'running-b');assert.equal(get('e64-action-0').textContent,'Changed');assert.equal(get('live-hotkeys').dataset.configId,'running-b');
+ let content=page('sid');
+ assert.deepEqual([...content.matchAll(/<li>(.*?)<\/li>/g)].map(m=>m[1]),['Open Sound and enable Dual SID.','Set the SID2 address (ie: 0xD420).','Choose SID2 Model: 6581 or 8580.','Reset the C64 after changing the address.','Save the settings to your custom Config.','Enable Dual SID.','Set SID2 Address to the same as SID1.']);
+ for(const exact of ['Choose different chip models, such as<br>a 6581 for SID1 and an 8580 for SID2.','Both SIDs receive the same register writes.',"It's the differences in their characteristics<br>that produce the pseudo-stereo effect."])assert.ok(content.includes(exact));
+ assert.equal([...content.matchAll(/<hr>/g)].length,2);
+ content=page('mouse');for(const exact of ['Note: </span><span>The 1351 protocol does not expose<br>the scroll wheel or middle button.'])assert.ok(content.includes(exact));
+ content=page('drives');assert.ok(content.includes('Standard Drives</span><span class="drive-section-description">JiffyDOS requires both its C64 KERNAL and a matching Drive ROM</span>'));
+ assert.ok(content.includes('IEEE-488 Drives</strong></button><span class="drive-section-description">Requires the IEEE-488 interface to be enabled</span>'));
+ assert.ok(!content.includes('These standard models'));assert.equal([...content.matchAll(/class="drive-reference combined-drive-reference/g)].length,2);
+ const css=readFileSync(new URL('../../src/webui/assets/style.css',import.meta.url),'utf8');
+ assert.ok(/\.modifier-keycap \{[^}]*width: 48px; height: 28px;/.test(css));
+ assert.ok(/\.commodore-keycap \{ width: 28px;/.test(css));
+ assert.ok(!/\.hotkey-pair::(?:before|after)/.test(css));
+ assert.ok(css.includes('.hotkey-divider-left { right: 100%; }') && css.includes('.hotkey-divider-right { left: 100%; }'));
+ assert.ok(css.includes('width: calc(var(--modifier-width) + var(--action-width))'));
+ assert.equal([...html.matchAll(/class="hotkey-divider hotkey-divider-(?:left|right)"/g)].length,8);
+ assert.ok(css.includes('[data-topic="sid"] { width: min(440px, 94vw); }'));
+} finally {globalThis.document=previous;}
+console.log('PASS: final modifier-keycap/SHIFT positions, edge-to-edge divider rules, note ordering, exact SID/mouse line breaks, drive captions and live Config changes');

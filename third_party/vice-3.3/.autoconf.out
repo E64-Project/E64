@@ -1,0 +1,236 @@
+configure.ac:158: warning: AM_INIT_AUTOMAKE: two- and three-arguments forms are deprecated.
+./lib/autoconf/general.m4:2434: AC_DIAGNOSE is expanded from...
+aclocal.m4:449: AM_INIT_AUTOMAKE is expanded from...
+configure.ac:158: the top level
+configure.ac:306: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:306: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+lib/m4sugar/m4sh.m4:690: _AS_IF_ELSE is expanded from...
+lib/m4sugar/m4sh.m4:697: AS_IF is expanded from...
+./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+configure.ac:306: the top level
+configure.ac:316: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:316: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+lib/m4sugar/m4sh.m4:690: _AS_IF_ELSE is expanded from...
+lib/m4sugar/m4sh.m4:697: AS_IF is expanded from...
+./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+configure.ac:316: the top level
+configure.ac:377: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:377: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:377: the top level
+configure.ac:388: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:388: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:388: the top level
+configure.ac:401: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:401: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:401: the top level
+configure.ac:491: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:491: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:491: the top level
+configure.ac:514: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:514: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:514: the top level
+configure.ac:524: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:524: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:524: the top level
+configure.ac:566: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:566: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:566: the top level
+configure.ac:573: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:573: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:573: the top level
+configure.ac:818: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:818: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:818: the top level
+configure.ac:825: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:825: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:825: the top level
+configure.ac:838: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:838: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:838: the top level
+configure.ac:845: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:845: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:845: the top level
+configure.ac:860: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:860: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:860: the top level
+configure.ac:867: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:867: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:867: the top level
+configure.ac:892: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:892: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:892: the top level
+configure.ac:903: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:903: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:903: the top level
+configure.ac:920: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:920: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:920: the top level
+configure.ac:931: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:931: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:931: the top level
+configure.ac:983: warning: The macro 'AC_PROG_CC_C99' is obsolete.
+configure.ac:983: You should run autoupdate.
+./lib/autoconf/c.m4:1662: AC_PROG_CC_C99 is expanded from...
+configure.ac:983: the top level
+configure.ac:1116: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1116: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1116: the top level
+configure.ac:1129: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1129: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1129: the top level
+configure.ac:1148: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1148: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1148: the top level
+configure.ac:1219: warning: AC_PROG_LEX without either yywrap or noyywrap is obsolete
+./lib/autoconf/programs.m4:743: _AC_PROG_LEX is expanded from...
+./lib/autoconf/programs.m4:736: AC_PROG_LEX is expanded from...
+configure.ac:1219: the top level
+configure.ac:1353: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:1353: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:1353: the top level
+configure.ac:1427: warning: The macro 'ac_cv_prog_gcc' is obsolete.
+configure.ac:1427: You should run autoupdate.
+./lib/autoconf/c.m4:448: ac_cv_prog_gcc is expanded from...
+configure.ac:1427: the top level
+configure.ac:1526: warning: The macro 'ac_cv_prog_gcc' is obsolete.
+configure.ac:1526: You should run autoupdate.
+./lib/autoconf/c.m4:448: ac_cv_prog_gcc is expanded from...
+configure.ac:1526: the top level
+configure.ac:1722: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1722: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1722: the top level
+configure.ac:1730: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1730: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1730: the top level
+configure.ac:1796: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1796: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1796: the top level
+configure.ac:1807: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1807: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1807: the top level
+configure.ac:1818: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1818: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1818: the top level
+configure.ac:1828: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1828: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1828: the top level
+configure.ac:1946: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1946: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1946: the top level
+configure.ac:1961: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:1961: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:1961: the top level
+configure.ac:2020: warning: The macro 'AC_LANG_CPLUSPLUS' is obsolete.
+configure.ac:2020: You should run autoupdate.
+./lib/autoconf/c.m4:270: AC_LANG_CPLUSPLUS is expanded from...
+configure.ac:2020: the top level
+configure.ac:2033: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:2033: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:2033: the top level
+configure.ac:2152: warning: The macro 'AC_PROG_GCC_TRADITIONAL' is obsolete.
+configure.ac:2152: You should run autoupdate.
+./lib/autoconf/c.m4:1676: AC_PROG_GCC_TRADITIONAL is expanded from...
+configure.ac:2152: the top level
+configure.ac:2169: warning: The macro 'AC_DECL_SYS_SIGLIST' is obsolete.
+configure.ac:2169: You should run autoupdate.
+./lib/autoconf/specific.m4:40: AC_DECL_SYS_SIGLIST is expanded from...
+configure.ac:2169: the top level
+configure.ac:2257: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:2257: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:2257: the top level
+configure.ac:2335: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:2335: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:2335: the top level
+configure.ac:2360: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:2360: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:2360: the top level
+configure.ac:2460: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:2460: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:2460: the top level
+configure.ac:2468: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:2468: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:2468: the top level
+configure.ac:2517: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:2517: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:2517: the top level
+configure.ac:2538: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:2538: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:2538: the top level
+configure.ac:2550: warning: The macro 'AC_TRY_COMPILE' is obsolete.
+configure.ac:2550: You should run autoupdate.
+./lib/autoconf/general.m4:2845: AC_TRY_COMPILE is expanded from...
+configure.ac:2550: the top level
+configure.ac:2829: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:2829: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:2829: the top level
+configure.ac:2849: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:2849: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:2849: the top level
+configure.ac:3205: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:3205: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:3205: the top level
+configure.ac:3220: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:3220: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:3220: the top level
+configure.ac:3237: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:3237: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:3237: the top level
+configure.ac:3432: warning: The macro 'AC_TYPE_SIGNAL' is obsolete.
+configure.ac:3432: You should run autoupdate.
+./lib/autoconf/types.m4:805: AC_TYPE_SIGNAL is expanded from...
+configure.ac:3432: the top level
+configure.ac:3433: warning: The macro 'AC_FUNC_VFORK' is obsolete.
+configure.ac:3433: You should run autoupdate.
+./lib/autoconf/functions.m4:2041: AC_FUNC_VFORK is expanded from...
+configure.ac:3433: the top level
+configure.ac:3450: warning: The macro 'AC_TRY_LINK' is obsolete.
+configure.ac:3450: You should run autoupdate.
+./lib/autoconf/general.m4:2918: AC_TRY_LINK is expanded from...
+configure.ac:3450: the top level
+configure.ac:4151: warning: AC_OUTPUT should be used without arguments.
+configure.ac:4151: You should run autoupdate.

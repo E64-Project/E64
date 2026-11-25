@@ -1,0 +1,3 @@
+automake: warning: autoconf input should be named 'configure.ac', not 'configure.in'
+Makefile.am: installing './INSTALL'
+automake: warning: autoconf input should be named 'configure.ac', not 'configure.in'

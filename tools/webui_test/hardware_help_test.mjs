@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {showInstructions, hideInstructions} from '../../src/webui/assets/js/instructions.js';
+const previousDocument=globalThis.document, previousLocation=globalThis.location;
+const nodes=new Map();
+const node=()=>({dataset:{},children:[],childNodes:[],open:false,hidden:false,innerHTML:'',append(...x){this.children.push(...x);},replaceChildren(){this.children=[];},addEventListener(){},querySelector(){return {addEventListener(){},focus(){}};},show(){this.open=true;},close(){this.open=false;}});
+const get=id=>{if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);};
+globalThis.document={getElementById:get,createElement:node};
+globalThis.location={hash:'#/instructions/hardware'};
+showInstructions();
+assert.deepEqual(get('instructions-index').children.map(x=>x.href),['drives','sid','mouse','hotkeys','commands','navigation','hardware','storage','memory','advanced'].map(x=>'#/instructions/'+x));
+showInstructions('hardware');
+assert.equal(get('instructions-title').textContent,'Hardware');
+assert.equal(get('instructions-popup').dataset.topic,'hardware');
+assert.equal(get('instructions-popup').open,true);
+const html=get('instructions-content').innerHTML;
+for(const text of ['For the Raspberry Pi 3B+, a well-regulated 5.1V, 3A supply is recommended.','Power Supply and Wiring','Cooling Fan','GPIO11','pin 23','incoming regulated 5V','Save Fan Settings','/system/fan-prefs.txt','55 °C','50 °C','30–80 °C','470 Ω','10 kΩ','150mA Max','Fan Control Circuit','USB-to-RS-232','pinouts can differ'])assert(html.includes(text),text);
+assert.equal((html.match(/<section>/g)||[]).length,2);
+assert.equal((html.match(/<dt>/g)||[]).length,7);
+assert(!html.includes('330 Ω') && !html.includes('180 Ω'));
+assert(!html.includes('<figcaption>'));
+const read=p=>fs.readFileSync(new URL('../../'+p,import.meta.url),'utf8');
+const embedded=read('src/webui/webui_assets.c');
+for(const [,path] of html.matchAll(/src="(\/[^\"]+)"/g)){
+ assert(fs.existsSync(new URL('../../src/webui/assets'+path,import.meta.url)),path);
+ assert(embedded.includes('"'+path+'", "image/svg+xml"'),path);
+}
+const svg=read('src/webui/assets/fan-switch.svg');
+assert(Buffer.byteLength(svg)<6000);
+assert(!/<image\b|https?:\/\/(?!www.w3.org)|data:/.test(svg));
+for(const text of ['viewBox','<title','<desc','<circle','R1','R2','GPIO Pin 23','(3.3v control)','>C<','>B<','>E<'])assert(svg.includes(text),text);
+assert(read('src/fan_control.h').includes('#define FAN_GPIO 11'));
+assert(read('src/fan_gpio.cpp').includes('pin->Write(on ? HIGH : LOW)'));
+assert(read('src/fan_control.c').includes('(FanSettings){0, 55, 50}'));
+get('instructions-popup').onclose();assert.equal(location.hash,'#/instructions');
+showInstructions('storage');assert(get('instructions-content').innerHTML.includes('Do not connect external USB storage'));
+showInstructions('hardware');hideInstructions();assert.equal(get('instructions-popup').open,false);
+if(process.argv.includes('--html'))console.log(html);
+else console.log('PASS: Hardware Help route, exact content, shared dialog close/reopen, existing navigation/storage, SVG labels and embedded path, source facts');
+
+globalThis.document=previousDocument;globalThis.location=previousLocation;

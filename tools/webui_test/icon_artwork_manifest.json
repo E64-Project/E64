@@ -1,0 +1,41 @@
+{
+  "description": "Approved shapes, colors and details; ignores only the uniform outer placement transform. Update deliberately after visual approval.",
+  "icons": {
+    "folder": {
+      "artwork_sha256": "fafb2463d9231df77e8eecc117082e6e9e3b09ae3dd029e5a05c9a1292b5670e",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/folder.svg"
+    },
+    "floppy": {
+      "artwork_sha256": "dea505590b212ddd8bbd2f5a669e2dba439afda53eb688e0767189a0c09a3780",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/floppy.svg"
+    },
+    "hard-drive": {
+      "artwork_sha256": "0662697fe021c7cd462c5c23c7eb6f1aa026ca4057ba5111e742e5ded4b31b7d",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/hard-drive.svg"
+    },
+    "cartridge": {
+      "artwork_sha256": "040b679be85143bf91343f767503f26fd53ddfbdca5d3fa00ebb8314e74f91a6",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/cartridge.svg"
+    },
+    "cassette": {
+      "artwork_sha256": "ce9d1e1a6fcda854da6330c999972e20cc645ddbd44f9966b3c5712a7bcbdb31",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/cassette.svg"
+    },
+    "program": {
+      "artwork_sha256": "2a70300dfaa16aa903eccbe064876fc69853c109d1a47b19631ddd023ba48c08",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/program.svg"
+    },
+    "snapshot": {
+      "artwork_sha256": "750d2d6b28b8f2e12494cb1d65648f0882d33583b9d97e4f590c9348c4e1d1cc",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/snapshot.svg"
+    },
+    "rom": {
+      "artwork_sha256": "ea4de006c436e1145cf10b00c1cad08a9e2da799f361c3737a00ea963204d2fb",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/rom.svg"
+    },
+    "file": {
+      "artwork_sha256": "0b38d804144f772b7f189dea250f9d1fc2ecb90df45b80638d12cc48a7aefdf7",
+      "approved_source": "E64-Source-Backups/before-icon-occupancy-20261110-024725/src/webui/assets/icons/file.svg"
+    }
+  }
+}

@@ -1,0 +1,190 @@
+# VICE keyboard mapping file
+#
+# A Keyboard map is read in as patch to the current map.
+#
+# File format:
+# - comment lines start with '#'
+# - keyword lines start with '!keyword'
+# - normal line has 'keysym/scancode row column shiftflag'
+#
+# Keywords and their lines are:
+# '!CLEAR'               clear whole table
+# '!INCLUDE filename'    read file as mapping file
+# '!LSHIFT row col'      left shift keyboard row/column
+# '!RSHIFT row col'      right shift keyboard row/column
+# '!VSHIFT shiftkey'     virtual shift key (RSHIFT or LSHIFT)
+# '!UNDEF keysym'        remove keysym from table
+#
+# Shiftflag can have the values:
+# 0      key is not shifted for this keysym/scancode
+# 1      key is shifted for this keysym/scancode
+# 2      left shift
+# 4      right shift
+# 8      key can be shifted or not with this keysym/scancode
+# 16     deshift key for this keysym/scancode
+# 32     another definition for this keysym/scancode follows
+#
+# Negative row values:
+# 'keysym -1 n' joystick #1, direction n
+# 'keysym -2 n' joystick #2, direction n
+# 'keysym -3 0' first RESTORE key
+# 'keysym -3 1' second RESTORE key
+# 'keysym -4 0' 40/80 column key
+# 'keysym -4 1' CAPS (ASCII/DIN) key
+#
+
+# this is a PET business (uk) keyboard mapping (symbolic)
+
+# Business (UK) keyboard matrix:
+#
+# Keys starting with 'KP' are on the number pad.
+#
+#       0        1        2        3        4        5        6        7
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 0 |   2    |   5    |   8    |   -    |  KP8   |crsr rgt|  ^N    |   .    |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 1 |   1    |   4    |   7    |   0    |  KP7   |   ^    |--------|  KP9   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 2 | escape |   s    |   f    |   h    |   ]    |   k    |   ;    |  KP5   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 3 |   a    |   d    |   g    |   j    | return |   l    |   @    |  KP6   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 4 |  tab   |   w    |   r    |   y    |   \    |   i    |   p    |  del   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 5 |   q    |   e    |   t    |   u    |crsr dwn|   o    |   [    |  KP4   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 6 |l shift |   c    |   b    |   .    |  KP.   |  ^Y    |r shift |  KP3   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 7 |   z    |   v    |   n    |   ,    |  KP0   |  ^O    | repeat |  KP2   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 8 |  RVS   |   x    | space  |   m    | home   |  ^U    |   /    |  KP1   |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 9 |  <--   |   3    |   6    |   9    |runstop |   :    |--------|  ^V    |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+#
+#   ^N = both shifts + 2
+#   ^Y = left shift + TAB + I
+#   ^O = Z + A + L
+#   ^U = RVS + A + L
+#   ^V = TAB + <- + DEL
+#
+# Business (US) matrix (differences to UK)
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 2 |        |        |        |        |   ;    |        |   \    |        |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 3 |        |        |        |        |        |        |   [    |        |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 4 |        |        |        |        |   @    |        |        |        |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+# 5 |        |        |        |        |        |        |   ]    |        |
+#   +--------+--------+--------+--------+--------+--------+--------+--------+
+
+!CLEAR
+!LSHIFT 6 0
+!RSHIFT 6 6
+!VSHIFT RSHIFT
+
+0 1 3 32             /*            0 -> 0            */
+0 9 3 129            /*            ) -> Shift+9      */
+1 1 0 32             /*            1 -> 1            */
+1 1 0 129            /*            ! -> Shift+1      */
+2 0 0 32             /*            2 -> 2            */
+2 3 6 144            /*            @ -> @            */
+3 9 1 32             /*            3 -> 3            */
+3 9 1 129            /*            # -> Shift+3      */
+4 1 1 32             /*            4 -> 4            */
+4 1 1 129            /*            $ -> Shift+4      */
+5 0 1 32             /*            5 -> 5            */
+5 0 1 129            /*            % -> Shift+5      */
+6 9 2 32             /*            6 -> 6            */
+6 1 5 144            /*            ^ -> ^            */
+7 1 2 32             /*            7 -> 7            */
+7 9 2 129            /*            & -> Shift+6      */
+8 0 2 32             /*            8 -> 8            */
+8 9 5 129            /*            * -> Shift+:      */
+9 9 3 32             /*            9 -> 9            */
+9 0 2 129            /*            ( -> Shift+8      */
+
+Control_L 9 4 8      /*    Left Ctrl -> RUN/STOP     */
+Home 8 4 8           /*         Home -> CLR/HOME     */
+Right 0 5 8          /*        Right -> CRSR RIGHT   */
+Down 5 4 8           /*         Down -> CRSR DOWN    */
+Del 4 7 0            /*       Delete -> DEL          */
+BackSpace 4 7 8      /*    Backspace -> DEL          */
+Shift_L 6 0 2        /*   Left Shift -> Left Shift   */
+Shift_R 6 6 4        /*  Right Shift -> Right Shift  */
+Return 3 4 8         /*       Return -> Return       */
+Escape 2 0 8         /*          ESC -> ESC          */
+# RVS
+PageDown 8 0 8       /*    Page Down -> RVS          */
+# RPT
+Control_R 7 6 8      /*   Right Ctrl -> REPEAT       */
+Tab 4 0 8            /*          Tab -> TAB          */
+KP_0 7 4 8           /*     NumPad 0 -> KP 0         */
+KP_1 8 7 8           /*     NumPad 1 -> KP 1         */
+KP_2 7 7 8           /*     NumPad 2 -> KP 2         */
+KP_3 6 7 8           /*     NumPad 3 -> KP 3         */
+KP_4 5 7 8           /*     NumPad 4 -> KP 4         */
+KP_5 2 7 8           /*     NumPad 5 -> KP 5         */
+KP_6 3 7 8           /*     NumPad 6 -> KP 6         */
+KP_7 1 4 8           /*     NumPad 7 -> KP 7         */
+KP_8 0 4 8           /*     NumPad 8 -> KP 8         */
+KP_9 1 7 8           /*     NumPad 9 -> KP 9         */
+KP_Separator 7 3 0   /*     NumPad , -> ,            */
+KP_Multiply 9 5 1    /*     NumPad * -> Shift+:      */
+KP_Divide 8 6 0      /*     NumPad / -> /            */
+KP_Add 2 6 1         /*     NumPad + -> Shift+;      */
+KP_Subtract 0 3 0    /*     NumPad - -> -            */
+KP_Enter 3 4 8       /* NumPad Enter -> Return       */
+KP_Decimal 6 4 0     /*     NumPad . -> KP .         */
+Period 6 3 32        /*            . -> .            */
+Period 6 3 129       /*            > -> Shift+.      */
+Dash 0 3 32          /*            - -> -            */
+Dash 9 0 144         /*            _ -> Left Arrow   */
+Space 8 2 8          /*        Space -> Space        */
+SemiColon 2 6 32     /*            ; -> ;            */
+SemiColon 9 5 144    /*            : -> :            */
+Comma 7 3 32         /*            , -> ,            */
+Comma 7 3 129        /*            < -> Shift+,      */
+Slash 8 6 32         /*            / -> /            */
+Slash 8 6 129        /*            ? -> Shift+/      */
+BackSlash 4 4 32     /*            \ -> \            */
+BackSlash 4 4 129    /*            | -> Shift+\      */
+a 3 0 8              /*            A -> A            */
+b 6 2 8              /*            B -> B            */
+c 6 1 8              /*            C -> C            */
+d 3 1 8              /*            D -> D            */
+e 5 1 8              /*            E -> E            */
+f 2 2 8              /*            F -> F            */
+g 3 2 8              /*            G -> G            */
+h 2 3 8              /*            H -> H            */
+i 4 5 8              /*            I -> I            */
+j 3 3 8              /*            J -> J            */
+k 2 5 8              /*            K -> K            */
+l 3 5 8              /*            L -> L            */
+m 8 3 8              /*            M -> M            */
+n 7 2 8              /*            N -> N            */
+o 5 5 8              /*            O -> O            */
+p 4 6 8              /*            P -> P            */
+q 5 0 8              /*            Q -> Q            */
+r 4 2 8              /*            R -> R            */
+s 2 1 8              /*            S -> S            */
+t 5 2 8              /*            T -> T            */
+u 5 3 8              /*            U -> U            */
+v 7 1 8              /*            V -> V            */
+w 4 1 8              /*            W -> W            */
+x 8 1 8              /*            X -> X            */
+y 4 3 8              /*            Y -> Y            */
+z 7 0 8              /*            Z -> Z            */
+# Shift+[ and Shift+] give { and } on a SuperPET
+LeftBracket 5 6 32   /*            [ -> [            */
+LeftBracket 5 6 129  /*            { -> Shift+[      */
+RightBracket 2 4 32  /*            ] -> ]            */
+RightBracket 2 4 129 /*            } -> Shift+]      */
+Insert 4 7 1         /*       Insert -> INS          */
+Left 0 5 1           /*         Left -> CRSR LEFT    */
+Up 5 4 1             /*           Up -> CRSR UP      */
+SingleQuote 1 2 33   /*            ' -> Shift+7      */
+SingleQuote 0 0 129  /*            " -> Shift+2      */
+Equals 0 3 33        /*            = -> Shift+-      */
+Equals 2 6 129       /*            + -> Shift+;      */

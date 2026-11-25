@@ -1,0 +1,485 @@
+#!/usr/bin/env bash
+
+
+set -e
+
+# Set directory variables
+SRC_DIR=`pwd`
+CIRCLE_HOME="$SRC_DIR/third_party/circle-stdlib"
+COMMON_HOME="$SRC_DIR/third_party/common"
+
+# Check for the Arm GNU Toolchain and install it if necessary
+if ! source "$SRC_DIR/get_gnu_toolchain.sh"
+then
+       echo "Toolchain setup failed (Arm GNU Toolchain or Node.js)." >&2
+       exit 1
+fi
+
+# The web UI's JavaScript tests must pass. Checked here so a failure shows up
+# before the long build; the Makefile checks again before embedding the assets.
+if ! node "$SRC_DIR/tools/webui_test/run_tests.mjs"
+then
+       echo "Web UI tests failed." >&2
+       exit 1
+fi
+
+# The updater's tests (src/update/ and the Web UI's Update page) must pass,
+# when the updater is built in (updater.cfg). They build the updater with the
+# PC's C compiler and run it on test cards.
+# BMC64_C64_ONLY: updater tests disabled
+# The updater tests assume a full multi-kernel release layout and are not
+# needed for this local C64-only kernel build.
+#if [ "$UPDATER_KERNEL" = "yes" ] && ! python3 "$SRC_DIR/tools/update/test/run_tests.py"
+#then
+#       echo "Updater tests failed." >&2
+#       exit 1
+#fi
+
+# The keyboard tests (key routing, layout tables, keyboard presets) must pass.
+# They are built with the PC's C compiler. Checked here so a failure shows up
+# before the long build; the Makefile checks again before building the kernel.
+if ! "$SRC_DIR/tools/keyboard_test/run_tests.sh"
+then
+       echo "Keyboard tests failed." >&2
+       exit 1
+fi
+
+# The configs tests (config files and rules from docs/CONFIGS.md) must pass.
+# Built with the PC's C compiler, like the keyboard tests.
+if ! "$SRC_DIR/tools/configs_test/run_tests.sh"
+then
+       echo "Configs tests failed." >&2
+       exit 1
+fi
+
+CIRCLE_PUBLIC_INCLUDES="-I$CIRCLE_HOME/include -I$CIRCLE_HOME/libs/circle/include -I$CIRCLE_HOME/libs/circle/addon"
+
+if ! command -v flex >/dev/null 2>&1
+then
+       echo "Missing required build dependency: flex" >&2
+       echo "Install it with: sudo apt-get install flex" >&2
+       exit 1
+fi
+
+# VICE's nested reSID configure scripts otherwise select the obsolete
+# automake-1.15 binary instead of the installed compatible Automake.
+export AUTOMAKE=automake
+
+# AC_PROG_LEX probes libfl by linking an executable. That cannot work with the
+# bare-metal toolchain, even though flex itself is available for code generation.
+configure_vice()
+{
+       LEX=flex LEXLIB= ac_cv_lib_lex='none needed' ac_cv_search_yywrap='none required' "$@"
+}
+
+
+BOARD=""
+# E64 ships with prepatched third-party source.
+SKIP_PATCHES=1
+KASAN=0
+IO_STATS=0
+PERF_STATS=0
+
+for arg in "$@"
+do
+case "$arg" in
+       pi0|pi2|pi3|pi4)
+              BOARD="$arg"
+              ;;
+       --skip-patches)
+              SKIP_PATCHES=1
+              ;;
+       --kasan)
+              KASAN=1
+              ;;
+       --io-stats)
+              IO_STATS=1
+              ;;
+       --perf-stats)
+              PERF_STATS=1
+              ;;
+       *)
+              echo "Need arg [pi0|pi2|pi3|pi4] [--skip-patches] [--kasan] [--io-stats] [--perf-stats]"
+              exit 1
+              ;;
+esac
+done
+
+if [ -z "$BOARD" ]
+then
+echo "Need arg [pi0|pi2|pi3|pi4] [--skip-patches] [--kasan] [--io-stats] [--perf-stats]"
+exit 1
+fi
+
+# Opt-in storage I/O instrumentation (SD/FatFs counters, "I/O Statistics" menu
+# screen, raw benchmark). BMC64_IO_STATS is picked up by the common and kernel
+# Makefiles; IO_STATS also gates the diskio stats patch below. See docs/BUILDING.md.
+if [ "$IO_STATS" = "1" ]
+then
+       export BMC64_IO_STATS=1
+fi
+
+# Opt-in frame-budget / audio performance instrumentation (see
+# tools/perftest/README.md). BMC64_PERF_STATS is picked up by
+# the common and kernel Makefiles; VICE_PERF_CFLAGS carries it into the VICE
+# build, where a few BMC64 hooks live (arch/raspi and the dual SID wait).
+VICE_PERF_CFLAGS=""
+if [ "$PERF_STATS" = "1" ]
+then
+       export BMC64_PERF_STATS=1
+       VICE_PERF_CFLAGS="-DBMC64_PERF_STATS"
+fi
+
+echo "Making for $BOARD"
+
+if [ -f sdcard/config.txt ]
+then
+echo Making everything...
+else
+echo Must be run from E64 root dir.
+exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib
+
+find . -name 'config.cache' -exec rm {} \;
+
+echo ==============================================================
+echo APPLY PATCHES
+echo ==============================================================
+
+echo "Using bundled, prepatched E64 source."
+
+echo ==============================================================
+echo BUILD CIRCLE-STDLIB
+echo $PATH
+echo ==============================================================
+
+cd $SRC_DIR/third_party/circle-stdlib
+
+CIRCLE_CONFIGURE_ARGS=(--kernel-max-size 16)
+if [ "$KASAN" = "1" ]
+then
+       CIRCLE_CONFIGURE_ARGS+=(--kasan)
+fi
+
+if [ "$BOARD" = "pi2" ]
+then
+./configure --raspberrypi=2 "${CIRCLE_CONFIGURE_ARGS[@]}"
+elif [ "$BOARD" = "pi0" ]
+then
+./configure --raspberrypi=1 "${CIRCLE_CONFIGURE_ARGS[@]}"
+elif [ "$BOARD" = "pi3" ]
+then
+./configure --raspberrypi=3 "${CIRCLE_CONFIGURE_ARGS[@]}"
+elif [ "$BOARD" = "pi4" ]
+then
+./configure --raspberrypi=4 "${CIRCLE_CONFIGURE_ARGS[@]}"
+else
+echo "I don't know what to do for $BOARD"
+exit 1
+fi
+
+VICE_KASAN_CFLAGS=""
+if [ "$KASAN" = "1" ]
+then
+       KASAN_SHADOW_MAPPING_OFFSET=$(awk '/^KASAN_SHADOW_MAPPING_OFFSET = / { print $3; exit }' \
+              "$CIRCLE_HOME/libs/circle/Config.mk")
+       if [ -z "$KASAN_SHADOW_MAPPING_OFFSET" ]
+       then
+              echo "Circle did not generate a KASAN shadow mapping offset" >&2
+              exit 1
+       fi
+       VICE_KASAN_CFLAGS="-fsanitize=kernel-address -fno-builtin -fasan-shadow-offset=$KASAN_SHADOW_MAPPING_OFFSET --param asan-globals=1 --param asan-stack=1 --param asan-instrumentation-with-call-threshold=0 -fno-omit-frame-pointer"
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle
+./makeall --nosample clean
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib
+
+# For pi0, we turn on our HID report throttle
+if [ "$BOARD" = "pi0" ]
+then
+CFLAGS=-DBMC64_REPORT_THROTTLE make -j4
+else
+make -j4
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+fi
+
+echo ==============================================================
+echo BUILD ADDONS
+echo ==============================================================
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/fatfs
+make clean
+make
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/linux
+make clean
+make
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/wlan
+make clean
+make
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/wlan/hostap/wpa_supplicant
+make -f Makefile.circle clean
+make -f Makefile.circle
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/vc4/vchiq
+make clean
+make 
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/vc4/interface/bcm_host
+make
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/vc4/interface/khronos
+make
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/vc4/interface/vmcs_host
+make
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+cd $SRC_DIR/third_party/circle-stdlib/libs/circle/addon/vc4/interface/vcos
+make
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+# Common
+cd $SRC_DIR/third_party/common
+make clean
+if ! BOARD=$BOARD make
+then
+       echo "Failed to build BMC64 common library" >&2
+       exit 1
+fi
+
+# Plus4Emu
+# C64-only E64 V1 build: Plus4Emu is not linked.
+echo "Skipping Plus4Emu for C64-only firmware"
+
+# Vice
+cd $SRC_DIR/third_party/vice-3.3
+
+echo "Running autogen for VICE..."
+if ! ./autogen.sh
+then
+       echo "VICE autogen failed!" >&2
+       exit 1
+fi
+
+# autogen.sh does not force these legacy sub-builds to refresh. Regenerate them
+# so their aclocal macros and Makefile.in files match the active Automake.
+for resid_dir in src/resid src/teensy-resid
+do
+       if ! (cd "$resid_dir" && aclocal && autoconf -f && automake -a -c -f)
+       then
+              echo "Failed to regenerate VICE $resid_dir build files" >&2
+              exit 1
+       fi
+done
+
+if [ "$BOARD" = "pi0" ]
+then
+# We have to configure resid even though we don't link it for pi0 to
+# keep top level make happy. Too much of a hassle to fix configure.
+DIRS="src/resid src/teensy-resid"
+for d in $DIRS
+do
+cd $d
+if ! CXXFLAGS="-std=c++11 -funsafe-math-optimizations -DAARCH=32 -march=armv6k -mtune=arm1176jzf-s -marm -mfpu=vfp -mfloat-abi=hard -O3 -I$CIRCLE_HOME/install/arm-none-circle/include/ $CIRCLE_PUBLIC_INCLUDES -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include-fixed" LDFLAGS="-nostdlib -Wl,-e,main" ./configure --host=arm-none-eabi
+then
+       echo "Failed to configure $d"
+       exit 1
+fi
+cd ../..
+done
+
+LDFLAGS="-nostdlib -Wl,-e,main -L$CIRCLE_HOME/install/arm-none-circle/lib" CXXFLAGS="-std=c++11 -O3 -ffreestanding -DAARCH=32 -march=armv6k -mtune=arm1176jzf-s -marm -mfpu=vfp -mfloat-abi=hard -fno-exceptions -fno-rtti -nostdinc++ --specs=nosys.specs $CIRCLE_PUBLIC_INCLUDES" CFLAGS="-O3 -I$COMMON_HOME -I$CIRCLE_HOME/install/arm-none-circle/include/ $CIRCLE_PUBLIC_INCLUDES -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include-fixed -I$CIRCLE_HOME/libs/circle/addon/fatfs -fno-exceptions --specs=nosys.specs -mfloat-abi=hard -ffreestanding -nostdlib -march=armv6k -mtune=arm1176jzf-s -marm -mfpu=vfp -nostdinc $VICE_KASAN_CFLAGS $VICE_PERF_CFLAGS" configure_vice ./configure --host=arm-none-eabi --disable-realdevice --disable-ipv6 --disable-ssi2001 --disable-catweasel --disable-hardsid --disable-parsid --disable-portaudio --disable-ahi --disable-bundle --disable-lame --disable-rs232 --disable-midi --disable-hidmgr --disable-hidutils --without-oss --without-alsa --without-pulse --without-zlib --disable-sdlui --disable-sdlui2 --enable-raspiui --enable-raspilite
+if [ "$?" != "0" ]
+then
+       echo "Failed to configure VICE" >&2
+       exit 1
+fi
+elif [ "$BOARD" = "pi2" ]
+then
+cd src/resid
+CXXFLAGS="-std=c++11 -funsafe-math-optimizations -mfloat-abi=hard -march=armv7-a -marm -mfpu=neon-vfpv4 -O3 -I$CIRCLE_HOME/install/arm-none-circle/include/ $CIRCLE_PUBLIC_INCLUDES -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include-fixed" LDFLAGS="-L$CIRCLE_HOME/install/arm-none-circle/lib" ./configure --host=arm-none-eabi
+cd ../..
+
+LDFLAGS="-nostdlib -Wl,-e,main -L$CIRCLE_HOME/install/arm-none-circle/lib" CXXFLAGS="-std=c++11 -O3 -mfloat-abi=hard -ffreestanding -march=armv7-a -marm -mfpu=neon-vfpv4 -fno-exceptions -fno-rtti -nostdinc++ --specs=nosys.specs $CIRCLE_PUBLIC_INCLUDES" CFLAGS="-O3 -I$COMMON_HOME -I$CIRCLE_HOME/install/arm-none-circle/include/ $CIRCLE_PUBLIC_INCLUDES -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include-fixed -I$CIRCLE_HOME/libs/circle/addon/fatfs -fno-exceptions --specs=nosys.specs -mfloat-abi=hard -ffreestanding -nostdlib -march=armv7-a -marm -mfpu=neon-vfpv4 -nostdinc $VICE_KASAN_CFLAGS $VICE_PERF_CFLAGS" configure_vice ./configure --host=arm-none-eabi --disable-realdevice --disable-ipv6 --disable-ssi2001 --disable-catweasel --disable-hardsid --disable-parsid --disable-portaudio --disable-ahi --disable-bundle --disable-lame --disable-rs232 --disable-midi --disable-hidmgr --disable-hidutils --without-oss --without-alsa --without-pulse --without-zlib --disable-sdlui --disable-sdlui2 --enable-raspiui
+if [ "$?" != "0" ]
+then
+       echo "Failed to configure VICE" >&2
+       exit 1
+fi
+elif [ "$BOARD" = "pi3" ]
+then
+cd src/resid
+LDFLAGS="-nostdlib -Wl,-e,main" CXXFLAGS="-O3 -std=c++11 -march=armv8-a -mtune=cortex-a53 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard $CIRCLE_PUBLIC_INCLUDES" ./configure --host=arm-none-eabi
+cd ../..
+
+LDFLAGS="-nostdlib -Wl,-e,main -L$CIRCLE_HOME/install/arm-none-circle/lib" CXXFLAGS="-O3 -std=c++11 -fno-exceptions -march=armv8-a -mtune=cortex-a53 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard -ffreestanding -nostdlib -nostdinc++ $CIRCLE_PUBLIC_INCLUDES" CFLAGS="-O3 -I$COMMON_HOME -I$CIRCLE_HOME/install/arm-none-circle/include/ $CIRCLE_PUBLIC_INCLUDES -I$CIRCLE_HOME/libs/circle/addon/fatfs -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include-fixed -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include -fno-exceptions -march=armv8-a -mtune=cortex-a53 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard -ffreestanding -nostdlib $VICE_KASAN_CFLAGS $VICE_PERF_CFLAGS" configure_vice ./configure --host=arm-none-eabi --disable-realdevice --disable-ipv6 --disable-ssi2001 --disable-catweasel --disable-hardsid --disable-parsid --disable-portaudio --disable-ahi --disable-bundle --disable-lame --disable-rs232 --disable-midi --disable-hidmgr --disable-hidutils --without-oss --without-alsa --without-pulse --without-zlib --disable-sdlui --disable-sdlui2 --enable-raspiui
+if [ "$?" != "0" ]
+then
+       echo "Failed to configure VICE" >&2
+       exit 1
+fi
+elif [ "$BOARD" = "pi4" ]
+then
+cd src/resid
+LDFLAGS="-nostdlib -Wl,-e,main" CXXFLAGS="-O3 -std=c++11 -march=armv8-a -mtune=cortex-a72 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard $CIRCLE_PUBLIC_INCLUDES" ./configure --host=arm-none-eabi
+cd ../..
+
+LDFLAGS="-nostdlib -Wl,-e,main -L$CIRCLE_HOME/install/arm-none-circle/lib" CXXFLAGS="-O3 -std=c++11 -fno-exceptions -march=armv8-a -mtune=cortex-a72 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard -ffreestanding -nostdlib -nostdinc++ $CIRCLE_PUBLIC_INCLUDES" CFLAGS="-O3 -I$COMMON_HOME -I$CIRCLE_HOME/install/arm-none-circle/include/ $CIRCLE_PUBLIC_INCLUDES -I$CIRCLE_HOME/libs/circle/addon/fatfs -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include-fixed -I$ARM_HOME/lib/gcc/arm-none-eabi/$ARM_VERSION/include -fno-exceptions -march=armv8-a -mtune=cortex-a72 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard -ffreestanding -nostdlib $VICE_KASAN_CFLAGS $VICE_PERF_CFLAGS" configure_vice ./configure --host=arm-none-eabi --disable-realdevice --disable-ipv6 --disable-ssi2001 --disable-catweasel --disable-hardsid --disable-parsid --disable-portaudio --disable-ahi --disable-bundle --disable-lame --disable-rs232 --disable-midi --disable-hidmgr --disable-hidutils --without-oss --without-alsa --without-pulse --without-zlib --disable-sdlui --disable-sdlui2 --enable-raspiui
+if [ "$?" != "0" ]
+then
+       echo "Failed to configure VICE" >&2
+       exit 1
+fi
+else
+echo "I don't know what to do for $BOARD"
+exit 1
+fi
+
+if ! grep -q '^#define HAVE_RS232BMC' src/config.h
+then
+echo "VICE configuration did not enable the BMC64 RS232 modem backend." >&2
+exit 1
+fi
+
+echo "Rebuilding VICE after configuration"
+make clean || true
+find . -type f \( -name '*.o' -o -name '*.a' -o -name '*.lo' \) -delete
+find . -type d \( -name '.deps' -o -name '.libs' \) -prune -exec rm -rf {} +
+
+cd src
+make libarchdep
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+make libhvsc
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+
+# Build teensy-resid for pi0
+if [ "$BOARD" = "pi0" ]
+then
+cd teensy-resid
+make libresid.a
+if [ "$?" != "0" ]
+then
+       exit 1
+fi
+cd ..
+fi
+
+cd ..
+
+# VICE recursively visits shared archives through multiple prerequisites.
+# Build serially to avoid concurrent writes. Standalone links can fail here.
+make -j1 x64 || true
+make -j1 x128 || true
+make -j1 xvic || true
+make -j1 xplus4 || true
+make -j1 xpet || true
+
+VICE_LINK_ARTIFACTS=(
+       src/core/libcore.a
+       src/userport/libuserport.a
+       src/rtc/librtc.a
+       src/usleep.o
+       src/imagecontents/libimagecontents.a
+)
+
+if [ "$BOARD" = "pi0" ]
+then
+       VICE_LINK_ARTIFACTS+=(src/teensy-resid/libresid.a)
+else
+       VICE_LINK_ARTIFACTS+=(src/resid/libresid.a)
+fi
+
+missing_vice_artifacts=()
+for artifact in "${VICE_LINK_ARTIFACTS[@]}"
+do
+       if [ ! -f "$artifact" ]
+       then
+              missing_vice_artifacts+=("$artifact")
+       fi
+done
+
+if [ "${#missing_vice_artifacts[@]}" -ne 0 ]
+then
+       echo "VICE did not produce required BMC64 link artifacts:" >&2
+       printf '  %s\n' "${missing_vice_artifacts[@]}" >&2
+       exit 1
+fi
+
+
+
+echo ==============================================================
+echo Link errors above are expected
+echo ==============================================================
+
+echo ==============================================================
+echo GENERATE WEB UI ASSETS
+echo ==============================================================
+
+cd $SRC_DIR
+if command -v python3 >/dev/null 2>&1
+then
+       if ! python3 tools/gen_webui_assets.py
+       then
+              echo "Web UI asset generation failed" >&2
+              exit 1
+       fi
+else
+       echo "python3 not found; using committed src/webui/webui_assets.c"
+fi
+
+make clean
+BOARD=$BOARD make -f Makefile-C64

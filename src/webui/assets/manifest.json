@@ -1,0 +1,12 @@
+{
+  "name": "Enhanced 64 v1.0 \u2014 Test Candidate",
+  "short_name": "E64",
+  "icons": [
+    {
+      "src": "/icons/e64-192.png?v=1.0",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

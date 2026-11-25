@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E64</title>
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/e64-16.png?v=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/e64-32.png?v=1.0">
+<link rel="icon" type="image/png" sizes="48x48" href="/icons/e64-48.png?v=1.0">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/e64-180.png?v=1.0">
+<link rel="manifest" href="/manifest.json?v=1.0">
+<link rel="stylesheet" href="/style.css">
+<!-- Fetch every module up front: it saves a round trip per import level on the device. -->
+<link rel="modulepreload" href="/js/util.js">
+<link rel="modulepreload" href="/js/api.js">
+<link rel="modulepreload" href="/js/basic.js">
+<link rel="modulepreload" href="/js/dashboard.js">
+<link rel="modulepreload" href="/js/editor.js">
+<link rel="modulepreload" href="/js/files.js">
+<link rel="modulepreload" href="/js/menu.js">
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <button class="sidebar-brand logo-toggle" id="logo-toggle" type="button" aria-label="Show version" aria-pressed="false"><span class="logo-art"><img class="sidebar-logo" src="/e64-long.png" alt="Enhanced 64" width="1615" height="974"><span class="logo-version" id="logo-version" hidden><canvas id="logo-version-text" aria-label="Version"></canvas></span></span></button>
+    <nav class="nav">
+      <a class="nav-item" href="#/dashboard" data-view="dashboard"><span class="ni-ico">▦</span>Dashboard</a>
+      <a class="nav-item" href="#/files" data-view="files"><span class="ni-ico">▤</span>File Manager</a>
+      <a class="nav-item" href="#/datasette" data-view="datasette"><span class="ni-ico">▣</span>Datasette</a>
+      <a class="nav-item" href="#/configs" data-view="configs"><span class="ni-ico">☰</span>Configs</a>
+      <a class="nav-item" href="#/instructions" data-view="instructions"><span class="ni-ico"><svg class="book-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C9 3 5 3 2 4v15c3-1 7-1 10 1m0-15c3-2 7-2 10-1v15c-3-1-7-1-10 1V5Z"/></svg></span>Instructions</a>
+    </nav>
+    <div class="sidebar-bottom">
+    <div class="nav nav-bottom">
+      <button class="nav-item" id="nav-reboot"><span class="ni-ico">⟳</span>Reboot</button>
+      <button class="nav-item" id="nav-shutdown"><span class="ni-ico">⏻</span>Shut Down</button>
+    </div>
+    <div class="sys-card">
+      <div class="sys-head"><span class="dot" id="sys-dot"></span><span id="sys-state">Connecting…</span></div>
+      <dl>
+        <dt>Uptime</dt><dd id="sc-uptime">—</dd>
+        <dt>Hostname</dt><dd id="sc-host">—</dd>
+        <dt>Network</dt><dd id="sc-net">—</dd>
+        <dt>IP Address</dt><dd id="sc-ip">—</dd>
+      </dl>
+    </div>
+    <button class="btn about-e64-button" id="about-e64-button" type="button">About E64</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="view" id="view-dashboard">
+      <header class="page-title-box"><h1><span class="page-icon" aria-hidden="true">▦</span>Dashboard</h1></header>
+      <div class="grid">
+        <div class="card qa-card">
+          <h2><span class="c-ico">⚡</span>Quick Actions</h2>
+          <div class="tiles">
+            <button class="tile tile-blue" id="qa-soft-reset">
+              <span class="tile-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v5h5"/></svg></span><span class="tile-t">Soft Reset The C64</span>
+            </button>
+            <button class="tile tile-purple" id="qa-reset">
+              <span class="tile-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v5h5"/></svg></span><span class="tile-t">Hard Reset The C64</span>
+            </button>
+            <button class="tile tile-amber" id="qa-warp">
+              <span class="tile-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l4-8 4 5 4-9 4 4"/></svg></span><span class="tile-t">Warp Mode</span><span class="tile-s" id="qa-warp-sub">Checking...</span>
+            </button>
+            <button class="tile tile-red" id="qa-disable">
+              <span class="tile-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M6 18 18 6"/></svg></span><span class="tile-t">Disable Web Page</span><span class="tile-s">Until Reboot</span>
+            </button>
+            <button class="tile tile-pink" id="qa-swap" aria-pressed="false" disabled>
+              <span class="tile-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></span><span class="tile-t">Swap Joysticks</span><span class="tile-s" id="qa-swap-sub">Checking...</span>
+            </button>
+          </div>
+          <p class="msg" id="action-msg"></p>
+        </div>
+
+        <div class="card">
+          <h2><span class="c-ico">ⓘ</span>System Information</h2>
+          <dl class="kv system-information">
+            <dt>REU Size</dt><dd id="i-reu-size">—</dd>
+            <dt>REU State</dt><dd id="i-reu"><span class="warp-pill">—</span></dd>
+
+            <div class="kv-divider" aria-hidden="true"></div>
+
+            <dt>Warp Mode</dt><dd id="i-warp"><span class="warp-pill">—</span></dd>
+
+            <div class="kv-divider" aria-hidden="true"></div>
+
+            <dt>IEEE-488</dt><dd id="i-ieee488"><span class="warp-pill">—</span></dd>
+
+            <div class="kv-divider" aria-hidden="true"></div>
+
+            <dt>Drive 8</dt><dd class="drive-value"><span id="i-drive8">—</span><span id="drive-led-8" class="drive-led" role="img" aria-label="Drive 8 activity: inactive"></span></dd>
+            <dt>Drive 9</dt><dd class="drive-value"><span id="i-drive9">—</span><span id="drive-led-9" class="drive-led" role="img" aria-label="Drive 9 activity: inactive"></span></dd>
+            <dt>Drive 10</dt><dd class="drive-value"><span id="i-drive10">—</span><span id="drive-led-10" class="drive-led" role="img" aria-label="Drive 10 activity: inactive"></span></dd>
+            <dt>Drive 11</dt><dd class="drive-value"><span id="i-drive11">—</span><span id="drive-led-11" class="drive-led" role="img" aria-label="Drive 11 activity: inactive"></span></dd>
+          </dl>
+        </div>
+
+        <div class="card">
+          <h2><span class="c-ico">◴</span>Hardware Status</h2>
+          <dl class="kv">
+            <dt>Low Voltage</dt><dd id="d-uv">—</dd>
+            <dt>Low Voltage Since Boot</dt><dd id="d-uv-boot">—</dd>
+            <dt>CPU Throttling</dt><dd id="d-thr">—</dd>
+            <dt>CPU Throttled Since Boot</dt><dd id="d-thr-boot">—</dd>
+          </dl>
+          <div class="meter" id="d-tempmeter" hidden>
+            <div class="meter-top"><span>CPU Temperature <span id="d-fan" hidden aria-label="Fan state"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M11 9C5 7 7 1 11 2c4 1 4 4 2 7Z"/><path d="M11 9C5 7 7 1 11 2c4 1 4 4 2 7Z" transform="rotate(120 12 12)"/><path d="M11 9C5 7 7 1 11 2c4 1 4 4 2 7Z" transform="rotate(240 12 12)"/></svg></span></span><span id="d-temp">—</span></div>
+            <div class="bar"><div class="bar-fill" id="d-temp-bar"></div></div>
+          </div>
+          <dl class="kv hardware-outputs">
+            <dt>Virtual Modem Address</dt><dd id="d-modem-address">—</dd>
+            <dt>User Port/FTDI RS-232</dt><dd id="d-ftdi">—</dd>
+            <dt>Audio Output</dt><dd id="d-audio">—</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="card storage-card">
+        <h2><span class="c-ico">▤</span>Storage</h2>
+        <div class="meter" id="d-storage" hidden>
+          <div class="meter-top"><span id="d-storage-label">SD Card</span><span id="d-storage-txt">—</span></div>
+          <div class="bar"><div class="bar-fill" id="d-storage-bar"></div></div>
+        </div>
+        <div class="meter" id="d-usb-storage" hidden>
+          <div class="meter-top"><span id="d-usb-storage-label">USB 1</span><span id="d-usb-storage-txt">—</span></div>
+          <div class="bar"><div class="bar-fill" id="d-usb-storage-bar"></div></div>
+        </div>
+        <div class="meter" id="d-usb2-storage" hidden>
+          <div class="meter-top"><span id="d-usb2-storage-label">USB 2</span><span id="d-usb2-storage-txt">—</span></div>
+          <div class="bar"><div class="bar-fill" id="d-usb2-storage-bar"></div></div>
+        </div>
+        <div class="meter" id="d-usb3-storage" hidden>
+          <div class="meter-top"><span id="d-usb3-storage-label">USB 3</span><span id="d-usb3-storage-txt">—</span></div>
+          <div class="bar"><div class="bar-fill" id="d-usb3-storage-bar"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-files" hidden>
+      <header class="page-title-box"><h1><span class="page-icon" aria-hidden="true">▤</span>File Manager</h1></header>
+      <div class="card fb-card" id="fb-card">
+        <div class="fb-bar">
+          <button class="btn" id="fb-up">↑ Up</button>
+          <button class="btn" id="fb-vol-SD">SD</button>
+          <button class="btn" id="fb-vol-USB" hidden>USB1</button>
+          <button class="btn" id="fb-vol-USB2" hidden>USB2</button>
+          <button class="btn" id="fb-vol-USB3" hidden>USB3</button>
+          <button class="btn" id="fb-mkdir">New Folder</button>
+          <button class="btn" id="fb-newbasic">Create BASIC PRG</button>
+          <label class="btn" id="fb-upload-btn">Upload<input type="file" id="fb-upload" multiple hidden></label>
+          <button class="btn" id="fb-tape-cancel" hidden>Cancel tape selection</button>
+          <button class="btn" id="fb-refresh" title="Refresh">⟳ Refresh</button>
+        </div>
+        <div class="fb-info"><div class="crumbs" id="fb-crumbs"></div><p class="fb-note" id="fb-note">Drag files into this window to upload to the current folder</p></div>
+        <p class="msg" id="fb-status" role="status"></p>
+        <div class="fb-scroll">
+          <table class="fb-table">
+            <thead><tr><th class="col-name" scope="col">Name</th><th class="col-size" scope="col">Size</th><th class="col-mod" scope="col">Modified</th><th class="col-act" scope="col">Actions</th></tr></thead>
+            <tbody id="fb-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-datasette" hidden>
+      <header class="page-title-box"><h1>Datasette</h1></header>
+      <div class="datasette-layout">
+      <div class="datasette-panel" aria-label="Datasette">
+        <div class="tape-compartment" id="tape-compartment">
+          <svg viewBox="0 0 560 310" role="img" aria-label="Empty Datasette compartment" id="tape-drawing" style="overflow:visible">
+<defs>
+ <linearGradient id="datasette-silver" x1="0" y1="26.33333333333333" x2="0" y2="332.8333333333333" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F0F1F2"/><stop offset="0.035" stop-color="#E2E4E6"/><stop offset="0.5" stop-color="#D8DBDE"/><stop offset="0.965" stop-color="#CCD0D4"/><stop offset="1" stop-color="#E8EAEC"/></linearGradient>
+ <clipPath id="cassette-well"><rect x="67.5" y="89.5" width="288" height="130" rx="16.5"/></clipPath>
+ <clipPath id="orange-well"><rect x="141" y="108" width="140" height="48" rx="4"/></clipPath>
+ <clipPath id="upper-silver-frame"><rect x="25" y="44.33333333333333" width="373" height="16.16666666666667"/></clipPath>
+ <g id="cassette-hub"><circle r="24" fill="#090909"/><circle r="19.5" fill="#555555"/><path d="M-2.25-19.5V-12.75H2.25V-19.5Z" transform="rotate(0)" fill="#d3d3d3"/><path d="M-2.25-19.5V-12.75H2.25V-19.5Z" transform="rotate(60)" fill="#d3d3d3"/><path d="M-2.25-19.5V-12.75H2.25V-19.5Z" transform="rotate(120)" fill="#d3d3d3"/><path d="M-2.25-19.5V-12.75H2.25V-19.5Z" transform="rotate(180)" fill="#d3d3d3"/><path d="M-2.25-19.5V-12.75H2.25V-19.5Z" transform="rotate(240)" fill="#d3d3d3"/><path d="M-2.25-19.5V-12.75H2.25V-19.5Z" transform="rotate(300)" fill="#d3d3d3"/></g>
+</defs>
+<g id="tape-assembly" transform="translate(0 16)">
+<rect x="7" y="26.33333333333333" width="409" height="306.5" rx="24" fill="url(#datasette-silver)" stroke="#929292"/>
+<rect x="10" y="29.33333333333333" width="403" height="300.5" rx="22" fill="none" stroke="#E8E8E8" stroke-width="2"/>
+<rect x="19" y="38.33333333333333" width="385" height="238" rx="21" fill="#111"/>
+<rect x="25" y="44.33333333333333" width="373" height="226" rx="18" fill="url(#datasette-silver)"/>
+<g id="tape-label-artwork" transform="translate(0 -10.333333333333333)">
+<rect x="60" y="82" width="303" height="145" rx="21" fill="#bfc0c2"/>
+<rect x="64" y="86" width="295" height="137" rx="20" fill="#D0CCC4" stroke="#080808" stroke-width="7"/>
+<g clip-path="url(#cassette-well)">
+ <g id="tape-cassette" hidden="hidden"><rect x="-8" y="53" width="409.4117647059" height="259.9764705882" rx="17"/>
+ </g>
+ <g transform="translate(0.5 35.666666666666667)">
+ <rect x="141" y="109.5" width="140" height="45" rx="4" fill="#f58b28" stroke="#382516" stroke-width="3"/>
+ <g id="tape-winding" hidden="hidden" clip-path="url(#orange-well)" fill="#382216"><circle cx="137" cy="132" r="77"/><circle cx="285" cy="132" r="39"/><g fill="none" stroke="#251b12" stroke-width=".6"><circle cx="137" cy="132" r="55"/><circle cx="137" cy="132" r="63"/><circle cx="137" cy="132" r="70"/></g></g>
+ <g id="tape-drive-disks" fill="#555555"><circle cx="137" cy="132" r="19.5"/><circle cx="285" cy="132" r="19.5"/></g>
+ <g id="tape-reels" hidden="hidden"><use href="#cassette-hub" x="137" y="132"/><use href="#cassette-hub" x="285" y="132"/></g>
+ <g id="tape-spindles" fill="#050505"><circle cx="137" cy="132" r="13.5"/><circle cx="285" cy="132" r="13.5"/></g>
+ </g>
+</g>
+</g>
+<!-- Foreground silver follows the exchanged frame clearance; tape artwork stays fixed. -->
+<g clip-path="url(#upper-silver-frame)" pointer-events="none"><rect x="25" y="44.33333333333333" width="373" height="226" rx="18" fill="url(#datasette-silver)"/></g>
+<rect x="20" y="285.33333333333331" width="383" height="34.5" rx="17.25" fill="#070707" stroke="#eee"/>
+</g>
+</svg>
+          <div id="tape-label" class="tape-label" hidden></div>
+          <button id="tape-help-toggle" class="btn tape-help" aria-expanded="false" aria-controls="tape-help"><span class="tape-control-icon" aria-hidden="true">ⓘ</span><span>Help</span></button>
+          <div class="tape-readout"><span class="tape-e64-logo" role="img" aria-label="E64"></span><output id="tape-counter" aria-label="Tape counter"><span>0</span><span>0</span><span>0</span></output><button class="btn" data-tape-action="zero" disabled aria-label="Reset tape counter"><span class="tape-control-icon" aria-hidden="true">↻</span><span>RESET</span></button></div>
+          <div id="tape-motor" class="tape-motor" role="img" aria-label="Motor state unavailable"><span aria-hidden="true"></span> MOTOR</div>
+          <div id="tape-status" role="status">Waiting for emulator state…</div>
+        </div>
+        <div class="tape-transports" role="group" aria-label="Tape transport">
+          <button class="btn" data-tape-action="record" disabled><span aria-hidden="true">●</span><span>REC</span></button>
+          <button class="btn" data-tape-action="play" disabled><span aria-hidden="true">▶</span><span>PLAY</span></button>
+          <button class="btn" data-tape-action="rewind" disabled><span aria-hidden="true">◀◀</span><span>REW</span></button>
+          <button class="btn" data-tape-action="forward" disabled><span aria-hidden="true">▶▶</span><span>F.FWD</span></button>
+          <button class="btn" data-tape-action="stop" disabled><span aria-hidden="true">■</span><span>STOP</span></button>
+          <a id="tape-load" class="btn tape-load" href="#/files"><span aria-hidden="true"><svg viewBox="0 0 24 24" width="1em" height="1em" style="display:block" fill="currentColor" focusable="false"><path d="M2 5h7l2 2h11v13H2z"/></svg></span><span>LOAD</span></a>
+          <button class="btn" data-tape-action="eject" disabled><span aria-hidden="true">⏏</span><span>EJECT</span></button>
+        </div>
+        <p id="tape-error" class="msg" role="alert"></p>
+      </div>
+      <aside id="tape-help" class="tape-help-panel" hidden aria-label="Datasette Help">
+        <h2>Datasette Help</h2>
+        <p>LOAD opens File Manager. Select a TAP image and attach it as tape.</p>
+        <p>To load from tape, enter LOAD on the C64 and press RETURN, then press PLAY. PLAY remains pressed while the C64 controls the tape motor. The green LED indicates the motor signal, not tape movement.</p>
+        <p>REW rewinds the tape; F.FWD winds it forward. STOP stops the transport and releases the pressed keys.</p>
+        <p>RECORD engages REC and PLAY together and requires a writable TAP image. Use the C64 SAVE command to record data.</p>
+        <p>EJECT detaches the tape image and resets the displayed counter to 000.</p>
+        <p>Counter RESET sets the counter to 000 without ejecting or rewinding the tape.</p>
+        <p>Reset Tape With Machine Reset controls whether a machine reset also resets the tape position and counter. Counter RESET does not change this preference.</p>
+      </aside>
+      </div>
+    </section>
+
+    <section class="view" id="view-instructions" hidden>
+      <header class="page-title-box"><h1><span class="page-icon" aria-hidden="true"><svg class="book-icon" viewBox="0 0 24 24"><path d="M12 5C9 3 5 3 2 4v15c3-1 7-1 10 1m0-15c3-2 7-2 10-1v15c-3-1-7-1-10 1V5Z"/></svg></span>Instructions</h1></header>
+      <div class="card instructions">
+        <nav id="instructions-index" aria-label="Instructions index"></nav>
+        <dialog id="instructions-popup" class="instructions-popup instructions" aria-labelledby="instructions-title"><div class="e64-popup-header"><h3 id="instructions-title">Help</h3><button type="button" class="btn" id="hotkeys-commands" hidden>JiffyDOS Commands</button><form method="dialog"><button class="btn" aria-label="Close Help">Close</button></form></div><p id="navigation-help-note" class="help-annotation" hidden>These keys control the Pi64 on-screen menu, not the webpage.</p><article id="instructions-content"></article></dialog>
+        <dialog id="jiffydos-commands-popup" class="instructions-popup instructions jiffydos-commands-popup" aria-labelledby="jiffy-commands-title">
+          <div class="e64-popup-header"><h3 id="jiffy-commands-title"><img class="jiffydos-logo" src="/jiffydos.png" alt="JiffyDOS" width="243" height="67"><span class="sr-only"> Commands</span></h3><form method="dialog"><button class="btn" aria-label="Close JiffyDOS Commands">Close</button></form></div>
+          <div class="jiffy-command-tabs" role="tablist" aria-label="Command categories">
+            <button class="btn" type="button" role="tab" id="jiffy-tab-disk" data-command-tab="disk" aria-controls="jiffy-command-panel" aria-selected="true">DISK</button>
+            <button class="btn" type="button" role="tab" id="jiffy-tab-files" data-command-tab="files" aria-controls="jiffy-command-panel" aria-selected="false" tabindex="-1">FILES</button>
+            <button class="btn" type="button" role="tab" id="jiffy-tab-programs" data-command-tab="programs" aria-controls="jiffy-command-panel" aria-selected="false" tabindex="-1">PROGRAMS</button>
+            <button class="btn" type="button" role="tab" id="jiffy-tab-advanced" data-command-tab="advanced" aria-controls="jiffy-command-panel" aria-selected="false" tabindex="-1">ADVANCED</button>
+          </div>
+          <div id="jiffy-command-panel" role="tabpanel" aria-labelledby="jiffy-tab-disk">
+            <table class="jiffy-command-table"><thead><tr><th scope="col">Command</th><th scope="col">Description</th></tr></thead><tbody id="jiffy-command-rows"></tbody></table>
+          </div>
+          <p class="jiffy-command-source">Commands taken from the JiffyDOS v6.01 manual</p>
+        </dialog>
+      </div>
+    </section>
+
+    <section class="view" id="view-configs" hidden>
+      <header class="page-title-box"><h1><span class="page-icon" aria-hidden="true">☰</span>Configs</h1></header>
+      <div class="pf-head">
+        <button class="btn" id="pf-restore" hidden>Legacy Config Cleanup</button>
+        <button class="btn" id="pf-refresh" title="Refresh">⟳ Refresh</button>
+      </div>
+      <p class="msg" id="pf-status"></p>
+      <div id="pf-list"></div>
+    </section>
+
+
+
+    <div class="dashboard-signature">
+      Everything You Remember, Only Better
+    </div>
+  </main>
+</div>
+
+<dialog id="about-e64-popup" class="e64-dialog about-e64-popup" aria-labelledby="about-e64-title">
+  <div class="e64-popup-header"><h2 id="about-e64-title">About E64</h2><form method="dialog"><button class="btn" aria-label="Close About E64">Close</button></form></div>
+  <div class="about-e64-content">
+    <p class="about-e64-version">Enhanced 64 — v1.0</p>
+    <p>For the Raspberry Pi 3B+</p>
+    <p class="about-e64-statement">Built out of a love for the Commodore 64,<br>and with thanks to those who keep it alive.</p>
+    <hr>
+    <p>E64 V1 — derived from BMC64, powered by VICE and Circle</p>
+  </div>
+</dialog>
+
+<div class="overlay" id="pf-restart" role="alertdialog" aria-modal="true" aria-labelledby="pf-restart-title" hidden>
+  <div class="pf-restart">
+    <div class="e64-popup-header"><h2 id="pf-restart-title"></h2><button class="btn" id="pf-restart-close" hidden>Close</button></div>
+    <div class="pf-spinner" id="pf-restart-spin"></div>
+    <p id="pf-restart-msg"></p>
+  </div>
+</div>
+
+<div class="overlay" id="editor" role="dialog" aria-modal="true" aria-labelledby="ed-title" hidden>
+  <div class="ed-dialog">
+    <div class="ed-head e64-popup-header"><h2 id="ed-title"></h2><button class="ed-close btn" id="ed-close" aria-label="Close" title="Close">Close</button></div>
+    <span class="ed-path" id="ed-path"></span>
+    <p class="ed-hint" id="ed-hint"></p>
+    <div class="ed-name" id="ed-name-row" hidden>
+      <label for="ed-name">File name</label>
+      <input id="ed-name" spellcheck="false" autocomplete="off" autocapitalize="off">
+    </div>
+    <textarea class="ed-text" id="ed-text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="File contents"></textarea>
+    <div class="ed-foot">
+      <p class="msg ed-msg" id="ed-msg"></p>
+      <div class="ed-btns">
+        <button class="btn" id="ed-cancel">Cancel</button>
+        <button class="btn btn-primary" id="ed-save">Save</button>
+        <button class="btn btn-reboot" id="ed-save-reboot">Save &amp; Reboot</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>

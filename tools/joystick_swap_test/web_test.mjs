@@ -1,0 +1,37 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+// Scope green to the icon/title so status and currentColor hover borders stay unchanged.
+const css=fs.readFileSync('src/webui/assets/style.css','utf8');
+const html=fs.readFileSync('src/webui/assets/index.html','utf8');
+const swapRules=[...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(m=>m[1].includes('#qa-swap'));
+assert.equal(swapRules.length,1);
+assert.equal(swapRules[0][1].trim(),'#qa-swap .tile-ico, #qa-swap .tile-t');
+assert.equal(swapRules[0][2].trim(),'color: var(--green);');
+assert.match(css,/--green:\s*var\(--c64-green\);/);
+assert.match(css,/\.tile-s\s*\{[^}]*color:\s*var\(--fg\);/);
+assert.match(css,/\.tile-pink\s*\{\s*color:\s*var\(--pink\);\s*\}/);
+assert.match(css,/\.tile:hover:not\(:disabled\)\s*\{\s*border-color:\s*currentColor;/);
+assert.match(html,/<button class="tile tile-pink" id="qa-swap"/);
+const source=fs.readFileSync('src/webui/assets/js/dashboard.js','utf8');
+const nodes=new Map();
+const $=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',disabled:false,attrs:{},setAttribute(k,v){this.attrs[k]=v;}});return nodes.get(id);};
+let state=0,calls=0,fail=false,release=null,scheduled=[],messages=[];
+const c=vm.createContext({$,String,api:{swapJoysticks:async()=>{calls++;if(fail)throw Error('offline');if(release===false)await new Promise(r=>release=r);state=1-state;}},showTemporaryActionMessage:m=>messages.push(m),scheduleStatus:ms=>scheduled.push(ms),pollStatus:async()=>vm.runInContext(`renderJoystickSwap({joystick_swap:${state}})`,c)});
+vm.runInContext(source.slice(source.indexOf('function renderJoystickSwap('),source.indexOf('let fanDirty =')),c);
+const render=()=>vm.runInContext(`renderJoystickSwap({joystick_swap:${state}})`,c);
+render();assert.equal($('qa-swap-sub').textContent,'Normal');assert.equal($('qa-swap').attrs['aria-pressed'],'false');
+await vm.runInContext('doJoystickSwap()',c);assert.equal(state,1);assert.equal($('qa-swap-sub').textContent,'Reverse');assert.equal($('qa-swap').attrs['aria-pressed'],'true');assert.equal(calls,1);
+await vm.runInContext('doJoystickSwap()',c);assert.equal(state,0);assert.equal($('qa-swap-sub').textContent,'Normal');assert.equal(calls,2);
+// Native changes and fresh page render read authoritative current state.
+state=1;render();assert.equal($('qa-swap-sub').textContent,'Reverse');
+const fresh=vm.createContext({$,String});
+vm.runInContext(source.slice(source.indexOf('function renderJoystickSwap('),source.indexOf('let fanDirty =')),fresh);
+vm.runInContext('renderJoystickSwap({joystick_swap:1})',fresh);assert.equal($('qa-swap-sub').textContent,'Reverse');
+release=false;const first=vm.runInContext('doJoystickSwap()',c);assert.equal($('qa-swap').disabled,true);await vm.runInContext('doJoystickSwap()',c);assert.equal(calls,3);release();await first;assert.equal(state,0);assert.equal($('qa-swap').disabled,false);
+fail=true;await vm.runInContext('doJoystickSwap()',c);assert.equal(state,0);assert.match($('action-msg').textContent,/failed.*offline/);assert.equal($('qa-swap').disabled,false);assert.equal(scheduled.at(-1),250);
+vm.runInContext('renderJoystickSwap({})',c);assert.equal($('qa-swap-sub').textContent,'Unavailable');assert.equal($('qa-swap').disabled,true);
+assert.match(source,/renderFanSettings\(s\);\s*renderJoystickSwap\(s\);/);
+assert.match(source,/\$\("qa-swap"\).addEventListener\("click", doJoystickSwap\)/);
+const api=fs.readFileSync('src/webui/assets/js/api.js','utf8');assert.match(api,/swapJoysticks = \(\) =>\s*post\("\/api\/joysticks\/swap", \{ headers: WEB_HEADER \}\)/);
+console.log('PASS Web toggle/state rendering, native-change refresh, current state on load, duplicate-click guard, failure/recovery and protected API');

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" shape-rendering="geometricPrecision">
+  <g transform="translate(8 8) scale(1.2666666667) translate(-8.0000000000 -8.0000000000)">
+    <path d="M2.75 5H4V3H9V5H13.25a.75.75 0 0 1 .75.75v6.5a.75.75 0 0 1-.75.75H2.75a.75.75 0 0 1-.75-.75v-6.5a.75.75 0 0 1 .75-.75Z" fill="#7518D8" shape-rendering="geometricPrecision"/>
+    <circle cx="7.25" cy="9" r="3" fill="#BBBBBB" shape-rendering="geometricPrecision"/>
+    <circle cx="7.25" cy="9" r="2.5" fill="#000000" shape-rendering="geometricPrecision"/>
+    <circle cx="7.25" cy="9" r="1.5" fill="#AAFFEE" shape-rendering="geometricPrecision"/>
+    <rect x="11" y="6" width="2" height="2" fill="#000000"/>
+    <rect x="5" y="3.5" width="3" height="1" fill="#FFFFFF" shape-rendering="geometricPrecision"/>
+  </g>
+</svg>
