@@ -56,6 +56,7 @@ No future updates, technical support or maintenance are promised.
 
 - [Public GitHub repository](https://github.com/E64-Project/E64)
 - [Firmware releases](https://github.com/E64-Project/E64/releases)
+- [Official Reddit community](https://www.reddit.com/r/E64Project/)
 - [Build instructions](docs/BUILDING.md)
 - [Community development](docs/CONTRIBUTING.md)
 - [Project scope](docs/SCOPE.md)
