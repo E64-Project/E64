@@ -15,7 +15,7 @@ Files in /system on the E64 SD card:
    MODE=STATIC uses IP, NETMASK, GATEWAY and DNS from the file.
    Use dotted IPv4 values. NETMASK must be a contiguous mask. Avoid an IP
    already assigned to another device. Gateway/DNS may be 0.0.0.0 for an
-   intentionally isolated network such as Harry's original R1 LAN.
+   intentionally isolated network such as a dedicated test LAN.
 3. NTP_ENABLED=YES obtains UTC time from NTP_SERVER. Use a local IPv4 address
    (default 192.168.1.5), or a hostname such as pool.ntp.org when DNS works.
    On failure E64 retries in five minutes, and resyncs every 15 minutes.

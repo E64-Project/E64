@@ -1,6 +1,6 @@
 # BMC64 customized R3 source update
 
-This update builds on Harry's customized BMC64 5.2.6 C64 source snapshot.
+This update builds on a customized BMC64 5.2.6 C64 source snapshot.
 The original C64-only storage, Web UI and other project changes remain in
 place; this is a source package, not a tested Raspberry Pi boot image.
 
