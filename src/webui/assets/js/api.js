@@ -57,9 +57,13 @@ export const startConfig = (id, once) =>
 // Permanent Config deletion is guarded on the emulator thread, not by the
 // generic file-manager delete endpoint. Only the second Yes reaches here.
 export const getDeletedConfigs = () => getJson("/api/configs/deleted");
-export const deleteConfigPermanent = (id, legacy = false) =>
-  post("/api/configs/deleted?id=" + encodeURIComponent(id) + "&permanent=1&confirmed=1&legacy=" + (legacy ? 1 : 0),
-       { headers: WEB_HEADER });
+export async function deleteConfigPermanent(id, legacy = false) {
+  const reply = await check(await fetch(
+    "/api/configs/deleted?id=" + encodeURIComponent(id) + "&permanent=1&confirmed=1&legacy=" + (legacy ? 1 : 0),
+    { method: "POST", headers: WEB_HEADER }
+  ));
+  return reply.json();
+}
 
 // ---- files ----
 
