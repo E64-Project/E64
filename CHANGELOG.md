@@ -1,3 +1,12 @@
+## E64 V1.0.1 (2026-11-26)
+
+- Fixed Web UI permanent Config deletion response handling.
+- Fixed automatic Config list refresh following successful deletion.
+- Added regression coverage for the Config deletion fix.
+- Updated native and Web UI firmware version displays to 1.0.1.
+- Removed the obsolete Test Candidate application designation.
+- Added the official E64 Reddit community link.
+
 ## 5.2.6 (pre-release)
   * Profiles (in development, see [PROFILES.md](docs/PROFILES.md)):
     * Ability to switch machines within a profile added and profiles keep BMC64 settings per machine (`settings-<machine>.txt`)

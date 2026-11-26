@@ -57,6 +57,7 @@ try {
  let draws=[];get('logo-version-text').getContext=()=>({clearRect(){draws=[];},fillRect(...args){draws.push(args);}});
  get('logo-version').hidden=true;initLogo();updateLogoVersion('1.0-branding-test');
  assert.equal(get('logo-version-text').attrs['aria-label'],'V 1.0');assert(draws.length>20);
+ updateLogoVersion('1.0.1');assert.equal(get('logo-version-text').attrs['aria-label'],'V 1.0.1');assert(draws.length>20);
  get('logo-toggle').fire('click');assert(!get('logo-version').hidden);assert.equal(get('logo-toggle').attrs['aria-pressed'],'true');
  updateLogoVersion('12.34-release');assert.equal(get('logo-version-text').attrs['aria-label'],'V 12.34');
  get('logo-toggle').fire('click');assert(get('logo-version').hidden);

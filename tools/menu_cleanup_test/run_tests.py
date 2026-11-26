@@ -80,7 +80,7 @@ int main(){
  assert(!strcmp(nodes[2].name," Type   Drive Model") && nodes[3].type==DIVIDER);
  for(auto &n:nodes)assert(n.menu_top==root.menu_top);
  show_about();assert(root.menu_width==240 && root.menu_height==88 && nodes.size()==7);
- const char *about[]={"E64 - v1.0","","DERIVED FROM","BMC64, VICE, & CIRCLE","For The Pi 3B+","","License >"};
+ const char *about[]={"E64 - v1.0.1","","DERIVED FROM","BMC64, VICE, & CIRCLE","For The Pi 3B+","","License >"};
  for(int i=0;i<7;i++){assert(!strcmp(nodes[i].name,about[i]));assert(nodes[i].type==(i==1||i==5?DIVIDER:i==6?BUTTON:READ_ONLY_HEADING));assert(strlen(nodes[i].name)<36 && nodes[i].menu_top%8==0);}
  assert(nodes[6].id==MENU_LICENSE);
  // Wrapped name/alias messages have space for every line and the inset.

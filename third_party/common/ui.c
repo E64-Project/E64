@@ -2061,7 +2061,7 @@ static void ui_render_children(struct menu_item *node,
   // This popup has its own optical vertical alignment within the blue plate.
   int about_contents = stack_index != 0 && first != NULL &&
       first->menu_width == 30 * 8 && first->menu_height == 11 * 8 &&
-      strcmp(first->name, "E64 - v1.0") == 0 &&
+      strcmp(first->name, "E64 - v1.0.1") == 0 &&
       first->next != NULL && first->next->type == DIVIDER &&
       first->next->next != NULL &&
       strcmp(first->next->next->name, "DERIVED FROM") == 0;
@@ -2581,7 +2581,7 @@ void ui_render_now(int menu_stack_index) {
   int is_about =
       menu_stack_index != 0 && !ui_transparent && ptr != NULL &&
       ptr->menu_width == 30 * 8 && ptr->menu_height == 11 * 8 &&
-      strcmp(ptr->name, "E64 - v1.0") == 0 &&
+      strcmp(ptr->name, "E64 - v1.0.1") == 0 &&
       ptr->next != NULL && ptr->next->type == DIVIDER &&
       ptr->next->next != NULL &&
       strcmp(ptr->next->next->name, "DERIVED FROM") == 0;

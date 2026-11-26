@@ -116,11 +116,11 @@ try{
  check('Datasette six enabled transports in one row',tapeButtons.map(b=>b.dataset.tapeAction).join('|')==='record|play|rewind|forward|stop|eject'&&tapeButtons.every(b=>!b.disabled&&Math.abs(box(b).top-box(tapeButtons[0]).top-(b.dataset.tapeAction==='play'?6:0))<1));
  check('Datasette API pressed transport rendered',tapeButtons.every(b=>b.getAttribute('aria-pressed')===String(b.dataset.tapeAction==='play')));
  setDatasetteVisible(false);
- updateLogoVersion('1.0-branding-test');
+ updateLogoVersion('1.0.1');
  const logo=document.getElementById('logo-toggle'),logoImage=logo.querySelector('img'),logoPanel=document.getElementById('logo-version');
  const whiteBefore=rect(box(logoImage));logo.click();
  check('version toggle preserves original image geometry',JSON.stringify(rect(box(logoImage)))===JSON.stringify(whiteBefore));
- check('logo version exact text',document.getElementById('logo-version-text').getAttribute('aria-label')==='V 1.0');
+ check('logo version exact text',document.getElementById('logo-version-text').getAttribute('aria-label')==='V 1.0.1');
  check('version stays in original rainbow bounds',Math.abs(box(logoPanel).left-(box(logoImage).left+box(logoImage).width*26/1602))<1&&Math.abs(box(logoPanel).top-(box(logoImage).top+box(logoImage).height*582/960))<1&&Math.abs(box(logoPanel).width-box(logoImage).width*1550/1602)<.1&&Math.abs(box(logoPanel).height-box(logoImage).height*352/960)<.1);
  check('version white interior and pure red frame',getComputedStyle(logoPanel).backgroundColor==='rgb(255, 255, 255)'&&getComputedStyle(logoPanel).borderTopWidth==='5px'&&getComputedStyle(logoPanel).borderTopColor==='rgb(255, 0, 0)');check('source rainbow region entirely clipped',getComputedStyle(logoImage).clipPath==='inset(0px 0px 39.375%)');logo.click();check('rainbow default restored',logoPanel.hidden&&getComputedStyle(logoImage).clipPath==='none');
  const headingDimensions=[];
@@ -461,7 +461,7 @@ class Handler(SimpleHTTPRequestHandler):
    self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.end_headers();self.wfile.write(html.encode());return
   if u.path=='/__state':return self.send_json({'writes':writes})
   if u.path=='/api/datasette':return self.send_json({'supported':1,'attached':1,'writable':1,'filename':'USB:/tapes/Browser fixture.tap','counter':123,'mode':1,'motor':0,'pending':0,'error':0})
-  if u.path=='/api/status':return self.send_json({'machine':'C64','version':'1.0-branding-test','config_id':'browser','config_name':'Browser Check','hostname':'e64','uptime_secs':3723,'ip':'192.0.2.64','net_status':1,'net_text':'Connected','soc_temp_c':43,'throttled':0,'warp':0,'reu':1,'reu_size':512,'ieee488':0,'drives':[1542,0,0,0],'hotkeys':['Warp','Status Toggle','Swap Ports','Menu','Virtual Keyboard','40/80 Column Key','Hard Reset','Flush Disks'],'caps':{'run':['d64','d71','d81','d82','g64','x64','t64','tap','prg','p00','crt'],'basic':'v2'}})
+  if u.path=='/api/status':return self.send_json({'machine':'C64','version':'1.0.1','config_id':'browser','config_name':'Browser Check','hostname':'e64','uptime_secs':3723,'ip':'192.0.2.64','net_status':1,'net_text':'Connected','soc_temp_c':43,'throttled':0,'warp':0,'reu':1,'reu_size':512,'ieee488':0,'drives':[1542,0,0,0],'hotkeys':['Warp','Status Toggle','Swap Ports','Menu','Virtual Keyboard','40/80 Column Key','Hard Reset','Flush Disks'],'caps':{'run':['d64','d71','d81','d82','g64','x64','t64','tap','prg','p00','crt'],'basic':'v2'}})
   if u.path in ['/api/volumes','/api/fs/volumes']:return self.send_json({'volumes':[{'id':v,'label':label,'total_kb':1024,'free_kb':512} for v,label in [('SD',''),('USB','BMC64DATA'),('USB2','EXTERNALUSB'),('USB3','ABCDEFGHIJK')]]})
   if u.path=='/api/configs/protection':return self.send_json({'ready':True,'protected':['_factory-ntsc','_factory-pal']})
   if u.path=='/api/configs/deleted':return self.send_json({'ready':True,'deleted':[]})

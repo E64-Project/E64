@@ -58,3 +58,13 @@ This is the E64 V1 public-release layout. Host checks do not replace Pi boot,
 visual, SD/USB, Config/protection and interrupted-save testing on hardware.
 Back up ROMs and Config files separately unless a source/firmware archive
 explicitly includes them. Historical source archives are not ROM backups.
+
+RELEASE VERSION: 1.0.1
+------------------------------------------------------------------------
+Maintenance release correcting Web UI Config deletion and automatic refresh.
+
+Official downloads:
+https://github.com/E64-Project/E64/releases
+
+Official community:
+https://www.reddit.com/r/E64Project/

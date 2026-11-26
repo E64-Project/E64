@@ -68,3 +68,13 @@ E64 V1 is provided as-is for independent community development,
 without a commitment to future maintenance or technical support.
 
 Back up your ROMs, Configs and personal settings separately.
+
+RELEASE VERSION: 1.0.1
+------------------------------------------------------------------------
+Maintenance release correcting Web UI Config deletion and automatic refresh.
+
+Official downloads:
+https://github.com/E64-Project/E64/releases
+
+Official community:
+https://www.reddit.com/r/E64Project/
