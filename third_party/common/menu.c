@@ -130,7 +130,7 @@ extern void reboot(void);
 
 extern int switch_global_audio_get(void);
 extern int switch_global_audio_set(int choice);
-#define VERSION_STRING "1.0-branding-test"
+#define VERSION_STRING "1.0.1"
 
 #ifdef RASPI_LITE
 #define VARIANT_STRING "-Lite"
@@ -1427,7 +1427,7 @@ static void show_create_empty_disk_menu(void) {
 
 static void show_about() {
   struct menu_item *root = ui_push_menu(30, 11);
-  ui_menu_add_read_only_heading(root, "E64 - v1.0");
+  ui_menu_add_read_only_heading(root, "E64 - v1.0.1");
   ui_menu_add_divider(root);
   ui_menu_add_read_only_heading(root, "DERIVED FROM");
   ui_menu_add_read_only_heading(root, "BMC64, VICE, & CIRCLE");

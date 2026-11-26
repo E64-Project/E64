@@ -98,3 +98,23 @@ An independent build of the corresponding source tree was completed
 on 24 November 2026. The resulting Raspberry Pi 3B+ kernel SHA-256 was:
 
     576beee8e8619d889b53d8fc5c389653f7323884dcb4b4662c98dd5e59c662d6
+
+## E64 V1.0.1 Build Verification
+
+The maintenance release was built on Devuan Linux on 26 November 2026.
+
+- ARM GNU Toolchain 15.2.rel1
+- arm-none-eabi-gcc 15.2.1
+- Node.js 24.21.0
+- Regression suite: 278 passed, 0 failed
+- Embedded Web UI assets verified
+- Raspberry Pi 3B+ startup verified
+- Native and Web UI version displays verified
+- Config deletion and automatic refresh verified
+
+This was targeted maintenance-release hardware verification,
+not a complete retest of every E64 feature.
+
+Published kernel SHA-256:
+
+    2e44b647c06c1776c4652f098cb38330c1b7a212caa664e87363ee32262f5d9c

@@ -410,7 +410,7 @@ static void cleanup_layouts(){
  assert(full);for(auto r:rects)assert(r.x>=16 && r.x+r.w<=16+288-8);
  menu_roots[1].name[0]=0;
  // Approved About wording, selectable License and whole CHARGEN cells.
- menu_item about[7];const char *lines[]={"E64 - v1.0","","DERIVED FROM","BMC64, VICE, & CIRCLE","For The Pi 3B+","","License >"};
+ menu_item about[7];const char *lines[]={"E64 - v1.0.1","","DERIVED FROM","BMC64, VICE, & CIRCLE","For The Pi 3B+","","License >"};
  for(int i=0;i<7;i++){item(about[i],i==1||i==5?DIVIDER:i==6?BUTTON:READ_ONLY_HEADING,lines[i],i==6?MENU_LICENSE:99999);about[i].disabled=i!=6;about[i].menu_width=240;about[i].menu_height=88;if(i<6)about[i].next=&about[i+1];}
  strcpy(about[6].displayed_value," ");
  menu_roots[1].first_child=&about[0];menu_cursor[1]=6;menu_window_top[1]=0;menu_window_bottom[1]=10;clear_draws();index=0;ui_render_children(&about[0],1,&index,0);

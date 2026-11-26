@@ -4,7 +4,7 @@ import {initAbout} from '../../src/webui/assets/js/about.js';
 const html=fs.readFileSync('src/webui/assets/index.html','utf8');
 const css=fs.readFileSync('src/webui/assets/style.css','utf8');
 assert.ok(html.includes('Built out of a love for the Commodore 64,<br>and with thanks to those who keep it alive.'));
-for(const text of ['Enhanced 64 — v1.0','For the Raspberry Pi 3B+','E64 V1 — derived from BMC64, powered by VICE and Circle'])assert.ok(html.includes(text));
+for(const text of ['Enhanced 64 — v1.0.1','For the Raspberry Pi 3B+','E64 V1 — derived from BMC64, powered by VICE and Circle'])assert.ok(html.includes(text));
 const sidebar=html.match(/<aside class="sidebar">([\s\S]*?)<\/aside>/)[1];
 assert.match(sidebar,/<\/dl>\s*<\/div>\s*<button class="btn about-e64-button" id="about-e64-button" type="button">About E64<\/button>/);
 assert.equal([...html.matchAll(/id="about-e64-button"/g)].length,1);
