@@ -3,15 +3,28 @@
 E64 (Enhanced 64) V1 is a bare-metal Commodore 64 emulator for the Raspberry Pi 3B+.
 It is derived from upstream BMC64 5.2.6 and uses VICE and Circle.
 
+## Project Status
+
+E64 is transitioning from active development to community-driven maintenance.
+
+The project remains available, supported on a best-effort basis, and open to community contributions.
+
+- Bug reports and feature requests are welcome.
+- Pull requests and community-developed enhancements are encouraged.
+- Maintaining the stability of existing functionality remains a priority.
+- Future updates will be considered as time, resources and community contributions permit.
+- No specific development schedule or future releases are guaranteed.
+
+E64 is not abandoned. However, active development will no longer be a continuous commitment by the project maintainer.
+
+
+
 Read the [SD card guide](sdcard/README.txt) for the current lowercase FAT32
 layout, ROM directories, Configs and Main save-recovery paths. Each SD
 directory has its own plain-text README.
 
 The protected internal Main Config is displayed as Default Configuration.
 Custom Config names allow 32 UTF-8 bytes.
-
-E64 V1 is publicly released for independent community development. The project is provided as-is, without any
-commitment to future updates, maintenance or technical support.
 
 The public-release kernel has passed compilation and host regression
 checks. Full hardware verification of the published firmware remains outstanding.
