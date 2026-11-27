@@ -17,6 +17,8 @@ The project remains available, supported on a best-effort basis, and open to com
 
 E64 is not abandoned. However, active development will no longer be a continuous commitment by the project maintainer.
 
+
+
 Read the [SD card guide](sdcard/README.txt) for the current lowercase FAT32
 layout, ROM directories, Configs and Main save-recovery paths. Each SD
 directory has its own plain-text README.
